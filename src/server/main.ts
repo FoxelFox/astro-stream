@@ -1,16 +1,31 @@
-import { ServerWebSocket } from "bun";
-import {EventSystem} from "../shared/event-system";
+import {ServerWebSocket} from "bun";
+import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";
 import * as path from "node:path";
 
 const publicDir = path.resolve(import.meta.dir, '../../dist');
 
-console.log(publicDir)
 class Backend {
 
-	eventSystem = new EventSystem();
+	eventSystem = inject(EventSystem);
+	connections: {[id: string]: ServerWebSocket<unknown>} = {};
 
-	connections: ServerWebSocket[] = []
+	userConnected(ws: ServerWebSocket<unknown>) {
+		for (let userid = Date.now().toString(); this.connections[userid] === undefined;) {
+			this.connections[userid] = ws;
+			this.eventSystem.publish(Topic.PlayerConnected, {name: userid});
+			ws.send(JSON.stringify({topic: Topic.ReceiveUserId, userid}));
+		}
+	}
+
+	userDisconnected(ws: ServerWebSocket<unknown>) {
+		for (const user in backend.connections) {
+			if (backend.connections[user] === ws) {
+				delete backend.connections[user];
+				this.eventSystem.publish(Topic.PlayerDisconnected, {name: user});
+			}
+		}
+	}
 
 	result = () => {
 		return Response.json({blub: "test"});
@@ -31,9 +46,9 @@ class Backend {
 }
 
 
-const backed = new Backend();
+const backend = new Backend();
 
-backed.main().then(() => {
+backend.main().then(() => {
 	Bun.serve({
 		async fetch(req) {
 
@@ -41,7 +56,7 @@ backed.main().then(() => {
 
 			let p = requestedPath.split('/');
 			if (p[1] === "api") {
-				return backed.router[requestedPath]();
+				return backend.router[requestedPath]();
 			}
 
 
@@ -73,25 +88,26 @@ backed.main().then(() => {
 		},
 		websocket: {
 			open(ws) {
-				console.log('new client', ws)
 				ws.subscribe('update');
+				ws.subscribe('userid');
+				backend.userConnected(ws);
 			},
 			message(ws, message) {
 				console.log(message)
 			},
 			close(ws, code: number, reason: string) {
 				ws.unsubscribe('update');
+				backend.userDisconnected(ws);
 			}
 		}
 	});
 
 	const eventSystem = inject(EventSystem);
 
-	eventSystem.listen("update", (data) => {
-		webSocketServer.publish("update", JSON.stringify(data));
-	});
-
-	//backed.market.watch();
-
-	console.log("Online")
+	const networkEvents = [Topic.Update, Topic.PlayerConnected, Topic.PlayerDisconnected];
+	for (const topic of networkEvents) {
+		eventSystem.listen(topic, (data) => {
+			webSocketServer.publish('update', JSON.stringify({topic, message: data}));
+		});
+	}
 });

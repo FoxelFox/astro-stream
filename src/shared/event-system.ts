@@ -1,12 +1,21 @@
-export class EventSystem {
-	topics: {[key: string]: ((data: any) => void)[]} = {}
+export enum Topic {
+	Update = 'update',
+	ReceiveUserId = 'receive-userid',
+	PlayerConnected = 'player-connected',
+	PlayerDisconnected = 'player-disconnected'
+}
 
-	listen(topic: string, listener: (message: any) => void) {
+
+export class EventSystem {
+	topics: {[key: string]: ((data: any) => void)[]}  = {};
+
+	listen(topic: Topic, listener: (message: any) => void) {
 		this.topics[topic] ??= [];
 		this.topics[topic].push(listener);
 	}
 
-	publish(topic: string, message: any) {
+	publish(topic: Topic, message: any) {
+		console.log('Event System publish', topic, message);
 		this.topics[topic] ??= [];
 
 		for (const listener of this.topics[topic]) {

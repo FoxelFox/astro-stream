@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/astro-streaming.iml" filepath="$PROJECT_DIR$/.idea/astro-streaming.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/astro-stream.iml" filepath="$PROJECT_DIR$/.idea/astro-stream.iml" />
     </modules>
   </component>
 </project>
