@@ -13,6 +13,6 @@ export class Player extends Node2D {
 			new Float32Array([0.0, 1.0, 0.5, -1.0,-0.5, -1.0]),
 			new Float32Array([1.0,1.0,1.0,1.0])
 		)
-		this.children.push(polys);
+		this.addChild(polys);
 	}
 }

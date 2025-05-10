@@ -13,16 +13,16 @@ class Backend {
 	userConnected(ws: ServerWebSocket<unknown>) {
 		for (let userid = Date.now().toString(); this.connections[userid] === undefined;) {
 			this.connections[userid] = ws;
-			this.eventSystem.publish(Topic.PlayerConnected, {name: userid});
+			this.eventSystem.publish(Topic.PlayerConnected, userid);
 			ws.send(JSON.stringify({topic: Topic.ReceiveUserId, userid}));
 		}
 	}
 
 	userDisconnected(ws: ServerWebSocket<unknown>) {
-		for (const user in backend.connections) {
-			if (backend.connections[user] === ws) {
-				delete backend.connections[user];
-				this.eventSystem.publish(Topic.PlayerDisconnected, {name: user});
+		for (const userid in backend.connections) {
+			if (backend.connections[userid] === ws) {
+				delete backend.connections[userid];
+				this.eventSystem.publish(Topic.PlayerDisconnected, userid);
 			}
 		}
 	}

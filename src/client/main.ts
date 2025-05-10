@@ -1,9 +1,11 @@
 import {Astro} from "../shared/astro/astro";
 import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";
+import {GPU} from "./gpu/gpu";
 
 const socket = new WebSocket(`ws://${location.hostname}:3001`);
 
+const gpu = new GPU();
 const game = new Astro();
 const eventSystem = inject(EventSystem);
 

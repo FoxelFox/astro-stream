@@ -1,5 +1,7 @@
 export enum Topic {
 	Update = 'update',
+	NodeDestroy = 'node-destroy',
+	NodeCreate = 'node-created',
 	ReceiveUserId = 'receive-userid',
 	PlayerConnected = 'player-connected',
 	PlayerDisconnected = 'player-disconnected'
