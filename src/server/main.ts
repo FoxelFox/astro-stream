@@ -2,12 +2,14 @@ import {ServerWebSocket} from "bun";
 import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";
 import * as path from "node:path";
+import {Astro} from "../shared/astro/astro";
 
 const publicDir = path.resolve(import.meta.dir, '../../dist');
 
 class Backend {
 
 	eventSystem = inject(EventSystem);
+	game = new Astro();
 	connections: {[id: string]: ServerWebSocket<unknown>} = {};
 
 	userConnected(ws: ServerWebSocket<unknown>) {
@@ -41,7 +43,7 @@ class Backend {
 	}
 
 	async main() {
-
+		await this.game.init();
 	}
 }
 
@@ -69,7 +71,15 @@ backend.main().then(() => {
 			const file = Bun.file(filePath);
 
 			if (await file.exists()) {
-				return new Response(file);
+				return new Response(
+					Bun.gzipSync(await file.arrayBuffer()),
+					{
+						headers: {
+							'Content-Type': file.type,
+							'Content-Encoding': 'gzip'
+						}
+					}
+				);
 			} else {
 				return new Response("404!")
 			}

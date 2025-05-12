@@ -3,6 +3,6 @@
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleResolution": "node",
-		"jsx": "react"
+		"types": ["@webgpu/types"]
 	}
 }

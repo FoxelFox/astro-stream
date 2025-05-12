@@ -3,6 +3,7 @@ import {Player} from "./player";
 import {EventSystem, Topic} from "../event-system";
 import {inject} from "../injector";
 import {Camera} from "../node/2D/camera";
+import {Ray} from "@dimforge/rapier2d-deterministic-compat";
 
 export class Astro extends Node {
 	// Game Scene
@@ -30,6 +31,11 @@ export class Astro extends Node {
 		this.eventSystem.listen(Topic.PlayerDisconnected, userid =>
 			1
 		);
+	}
+
+	async init () {
+
+		console.log(Ray)
 	}
 
 	update() {

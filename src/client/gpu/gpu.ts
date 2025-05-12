@@ -2,47 +2,51 @@ import {EventSystem, Topic} from "../../shared/event-system";
 import {inject} from "../../shared/injector";
 import {Line} from "../../shared/node/2D/line";
 import {Node} from "../../shared/node/node";
+import {LinePass} from "./line-pass";
 
 export class GPU {
 
 	eventSystem = inject(EventSystem);
-
-	lines: Line[] = [];
-	linesNeedUpdate: boolean = true;
+	lines = new LinePass();
+	device: GPUDevice;
+	canvas: HTMLCanvasElement;
 
 	constructor() {
 		this.eventSystem.listen(Topic.NodeCreate, (node: Node) => {
 			switch (node.constructor) {
-				case Line: this.addLine(node as Line); return;
+				case Line: this.lines.add(node as Line); return;
 			}
 		});
 
 		this.eventSystem.listen(Topic.NodeDestroy, (node: Node) => {
 			switch (node.constructor) {
-				case Line: this.removedLine(node as Line); return;
+				case Line: this.lines.remove(node as Line); return;
 			}
 		});
+
+	}
+
+	async init() {
+		this.canvas = document.getElementsByTagName('canvas')[0];
+
+		try {
+			if (navigator.gpu) {
+				const adapter = await navigator.gpu.requestAdapter({powerPreference: 'high-performance'});
+				this.device = await adapter.requestDevice();
+			}
+		} finally {
+			document.body.textContent = this.device ? 'benchmark started' : 'No GPU available 😔';
+		}
 	}
 
 	update() {
 		// update buffers
 
-		if (this.linesNeedUpdate) {
-			// update Line buffers
-		}
+		this.lines.update();
 
 
 		// draw calls
 	}
 
-	addLine(node: Line) {
-		this.lines.push(node);
-		this.linesNeedUpdate = true;
-	}
 
-	removedLine(node: Line) {
-		const i = this.lines.indexOf(node);
-		this.lines.splice(i, 1);
-		this.linesNeedUpdate = true;
-	}
 }

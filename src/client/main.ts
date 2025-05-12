@@ -9,6 +9,9 @@ const gpu = new GPU();
 const game = new Astro();
 const eventSystem = inject(EventSystem);
 
+await gpu.init();
+await game.init();
+
 socket.onopen = (ev) => {
 	console.log('connected')
 }

@@ -17,7 +17,6 @@ export class EventSystem {
 	}
 
 	publish(topic: Topic, message: any) {
-		console.log('Event System publish', topic, message);
 		this.topics[topic] ??= [];
 
 		for (const listener of this.topics[topic]) {
