@@ -2,12 +2,13 @@ import {EventSystem, Topic} from "../../shared/event-system";
 import {inject} from "../../shared/injector";
 import {Line} from "../../shared/node/2D/line";
 import {Node} from "../../shared/node/node";
-import {LinePass} from "./line-pass";
+import {LinePass} from "./line/line-pass";
 import {Camera} from "../../shared/node/2D/camera";
 
 export let device: GPUDevice
+export let context: GPUCanvasContext
 
-export class GPU {
+	export class GPU {
 
 	eventSystem = inject(EventSystem);
 	lines: LinePass = new LinePass();
@@ -44,7 +45,7 @@ export class GPU {
 			}
 		}
 
-		const context = this.canvas.getContext('webgpu');
+		context = this.canvas.getContext('webgpu');
 		const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 		context.configure({
 			device,
