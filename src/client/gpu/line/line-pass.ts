@@ -1,7 +1,8 @@
 import {Line} from "../../../shared/node/2D/line";
-import {context, device} from "../gpu";
-import {Mat3} from "wgpu-matrix";
-import lineShader from "./line.wgsl" with { type: "text" };
+import {context, device, GPU} from "../gpu";
+import {Mat3, Mat4, mat4} from "wgpu-matrix";
+import vertexShader from "./line.vertex.wgsl" with { type: "text" };
+import fragmentShader from "./line.fragment.wgsl" with { type: "text" };
 
 export class LinePass {
 
@@ -10,78 +11,83 @@ export class LinePass {
 
 	vertexBuffer: GPUBuffer
 	matrixBuffer: GPUBuffer
+	uniformBuffer: GPUBuffer
 	vertexToObjectIDBuffer: GPUBuffer
 
+	uniformBindGroup: GPUBindGroup;
+
 	pipeline: GPURenderPipeline
-	layout: GPUPipelineLayout
+	vertexCount: number
+	
 
-	constructor() {
 
-		const shader = device.createShaderModule({
-			label: 'Line Strip Shader Module',
-			code: lineShader,
-		})
-
-		this.layout = device.createPipelineLayout({
-			bindGroupLayouts: [
-				device.createBindGroupLayout({
-					entries: [{
-						binding: 0,
-						visibility: GPUShaderStage.VERTEX,
-						buffer: { type: "read-only-storage" }
-					}]
-				})
-			]
-		});
-
-		this.pipeline = device.createRenderPipeline({
-			label: 'Line Strip Render Pipeline',
-			layout: this.layout,
-			vertex: {
-				module: shader
-			}
-		})
-	}
-
-	update(camera: Mat3) {
+	update(camera: Mat4) {
 		if (this.linesNeedUpdate) {
 			this.updateBuffers();
 			this.linesNeedUpdate = false;
 		}
 
+		device.queue.writeBuffer(this.uniformBuffer, 0, camera);
 
 		this.render();
 	}
 
+	init() {
+		this.pipeline = device.createRenderPipeline({
+			label: 'Line List Render Pipeline',
+			layout: 'auto',
+			vertex: {
+				//entryPoint: 'main',
+				module: device.createShaderModule({
+					label: 'Line List Vertex Shader',
+					code: vertexShader
+				}),
+				buffers: [{
+					arrayStride: 2 * Float32Array.BYTES_PER_ELEMENT,
+					attributes: [{
+						shaderLocation: 0,
+						offset: 0,
+						format: 'float32x2'
+					}]
+				}]
+			},
+			fragment: {
+				//entryPoint: 'main',
+				module: device.createShaderModule({
+					label: 'Line List Fragment Shader',
+					code: fragmentShader,
+				}),
+				targets: [{
+					format: navigator.gpu.getPreferredCanvasFormat()
+				}]
+			},
+			primitive: {
+				topology: 'line-list'
+			}
+		});
 
+		this.uniformBuffer = device.createBuffer({
+			size: 16 * Float32Array.BYTES_PER_ELEMENT,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+		});
 
-
-	render() {
-
-		const commandEncoder = device.createCommandEncoder({ label: 'Command Encoder' });
-		const textureView = context.getCurrentTexture().createView();
-
-		const renderPassDescriptor: GPURenderPassDescriptor = {
-			colorAttachments: [{
-				view: textureView,
-				clearValue: { r: 0.05, g: 0.05, b: 0.1, a: 1.0 }, // Dark blue-ish background
-				loadOp: 'clear',
-				storeOp: 'store'
+		this.uniformBindGroup = device.createBindGroup({
+			layout: this.pipeline.getBindGroupLayout(0),
+			entries: [{
+				binding: 0,
+				resource: {buffer: this.uniformBuffer}
 			}]
-		};
-
-		const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-		// passEncoder.draw()
+		});
 	}
 
 	updateBuffers() {
-		let length = 0;
+		this.vertexCount = 0;
 		for (const line of this.lines) {
-			length += line.vertices.length;
+			this.vertexCount += line.vertices.length / 2;
 		}
 
-		const vertices = new Float32Array(length)
-		const matrices = new Float32Array(9 * this.lines.length);
+		const vertices = new Float32Array(this.vertexCount * 2)
+		const matrices = new Float32Array(12 * this.lines.length);
 		const vertexToObjectID = new Uint32Array(length);
 		let vOffset = 0;
 		let mOffset = 0;
@@ -137,6 +143,31 @@ export class LinePass {
 		}
 		device.queue.writeBuffer(this.vertexToObjectIDBuffer, 0, vertexToObjectID);
 
+	}
+
+	render() {
+
+		const commandEncoder = device.createCommandEncoder({ label: 'Command Encoder' });
+		const textureView = context.getCurrentTexture().createView();
+
+		const renderPassDescriptor: GPURenderPassDescriptor = {
+			colorAttachments: [{
+				view: textureView,
+				clearValue: { r: 0.05, g: 0.05, b: 0.1, a: 1.0 }, // Dark blue-ish background
+				loadOp: 'clear',
+				storeOp: 'store'
+			}]
+		};
+
+		const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+
+		passEncoder.setPipeline(this.pipeline);
+		passEncoder.setBindGroup(0, this.uniformBindGroup);
+		passEncoder.setVertexBuffer(0, this.vertexBuffer);
+		passEncoder.draw(this.vertexCount);
+		passEncoder.end();
+
+		device.queue.submit([commandEncoder.finish()]);
 	}
 
 	add(node: Line) {

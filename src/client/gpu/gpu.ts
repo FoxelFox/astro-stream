@@ -7,12 +7,12 @@ import {Camera} from "../../shared/node/2D/camera";
 
 export let device: GPUDevice
 export let context: GPUCanvasContext
+export let canvas: HTMLCanvasElement
 
 	export class GPU {
 
 	eventSystem = inject(EventSystem);
 	lines: LinePass = new LinePass();
-	canvas: HTMLCanvasElement;
 	camera: Camera;
 
 	constructor() {
@@ -32,7 +32,9 @@ export let context: GPUCanvasContext
 	}
 
 	async init() {
-		this.canvas = document.getElementsByTagName('canvas')[0];
+		canvas = document.getElementsByTagName('canvas')[0];
+		this.setCanvasSize();
+		window.addEventListener("resize", this.setCanvasSize);
 
 		try {
 			if (navigator.gpu) {
@@ -45,7 +47,7 @@ export let context: GPUCanvasContext
 			}
 		}
 
-		context = this.canvas.getContext('webgpu');
+		context = canvas.getContext('webgpu');
 		const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 		context.configure({
 			device,
@@ -53,15 +55,18 @@ export let context: GPUCanvasContext
 			alphaMode: 'opaque'
 		});
 
+		this.lines.init();
+	}
+
+	setCanvasSize = () => {
+		canvas.width = window.innerWidth * devicePixelRatio;
+		canvas.height = window.innerHeight * devicePixelRatio;
 	}
 
 	update() {
-		// update buffers
-
-		this.lines.update(this.camera.transform);
-
-
-		// draw calls
+		if (this.camera) {
+			this.lines.update(this.camera.cam);
+		}
 	}
 
 
