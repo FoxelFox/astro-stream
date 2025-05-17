@@ -1,22 +1,37 @@
+import {Node} from "./node/node";
+
 export enum Topic {
-	Update = 'update',
-	NodeDestroy = 'node-destroy',
-	NodeCreate = 'node-created',
-	ReceiveUserId = 'receive-userid',
-	PlayerConnected = 'player-connected',
-	PlayerDisconnected = 'player-disconnected'
+	Update,
+	NodeDestroy,
+	NodeCreate,
+	ReceiveUserId,
+	PlayerConnected,
+	PlayerDisconnected,
+	CanvasResize
+}
+
+export interface TopicDataMap {
+	[Topic.Update]: any
+	[Topic.NodeDestroy]: Node
+	[Topic.NodeCreate]: Node
+	[Topic.ReceiveUserId]: string;
+	[Topic.PlayerConnected]: string;
+	[Topic.PlayerDisconnected]: string;
+	[Topic.CanvasResize]: { width: number; height: number };
 }
 
 
-export class EventSystem {
-	topics: {[key: string]: ((data: any) => void)[]}  = {};
+type Listener<T extends Topic> = (data: TopicDataMap[T]) => void;
 
-	listen(topic: Topic, listener: (message: any) => void) {
-		this.topics[topic] ??= [];
-		this.topics[topic].push(listener);
+export class EventSystem {
+
+	private topics: { [K in Topic]?: Listener<K>[] } = {};
+
+	listen<T extends Topic>(topic: T, listener: Listener<T>) {
+		(this.topics[topic] ??= []).push(listener);
 	}
 
-	publish(topic: Topic, message: any) {
+	publish<T extends Topic>(topic: T, message: TopicDataMap[T]) {
 		this.topics[topic] ??= [];
 
 		for (const listener of this.topics[topic]) {

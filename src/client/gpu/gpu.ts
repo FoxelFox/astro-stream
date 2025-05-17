@@ -1,7 +1,6 @@
 import {EventSystem, Topic} from "../../shared/event-system";
 import {inject} from "../../shared/injector";
 import {Line} from "../../shared/node/2D/line";
-import {Node} from "../../shared/node/node";
 import {LinePass} from "./line/line-pass";
 import {Camera} from "../../shared/node/2D/camera";
 
@@ -16,14 +15,14 @@ export let canvas: HTMLCanvasElement
 	camera: Camera;
 
 	constructor() {
-		this.eventSystem.listen(Topic.NodeCreate, (node: Node) => {
+		this.eventSystem.listen(Topic.NodeCreate, node => {
 			switch (node.constructor) {
 				case Line: this.lines.add(node as Line); return;
 				case Camera: this.camera = node as Camera;
 			}
 		});
 
-		this.eventSystem.listen(Topic.NodeDestroy, (node: Node) => {
+		this.eventSystem.listen(Topic.NodeDestroy, node => {
 			switch (node.constructor) {
 				case Line: this.lines.remove(node as Line); return;
 			}
@@ -61,6 +60,13 @@ export let canvas: HTMLCanvasElement
 	setCanvasSize = () => {
 		canvas.width = window.innerWidth * devicePixelRatio;
 		canvas.height = window.innerHeight * devicePixelRatio;
+
+		this.eventSystem.publish(
+			Topic.CanvasResize, {
+				width: canvas.width,
+				height: canvas.height
+			}
+		);
 	}
 
 	update() {
