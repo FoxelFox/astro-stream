@@ -7,7 +7,6 @@ export class Node {
 	parent?: Node;
 
 	constructor(
-
 		private children: Array<Node> = []
 	) {
 		this.eventSystem.publish(Topic.NodeCreate, this);
@@ -24,6 +23,12 @@ export class Node {
 
 	destroy() {
 		this.eventSystem.publish(Topic.NodeDestroy, this);
+	}
+
+	update() {
+		for (const child of this.children) {
+			child.update();
+		}
 	}
 }
 

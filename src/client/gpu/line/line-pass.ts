@@ -12,7 +12,7 @@ export class LinePass {
 	vertexBuffer: GPUBuffer
 	matrixBuffer: GPUBuffer
 	uniformBuffer: GPUBuffer
-	vertexToObjectIDBuffer: GPUBuffer
+	vertexToMatrixBuffer: GPUBuffer
 
 	uniformBindGroup: GPUBindGroup;
 
@@ -94,7 +94,9 @@ export class LinePass {
 		let i = 0;
 		for (const line of this.lines) {
 			vertices.set(line.vertices, vOffset);
-			matrices.set(line.transform, mOffset);
+
+
+			matrices.set(line.getGlobalTransform(), mOffset);
 			vertexToObjectID.fill(i, vOffset, line.vertices.length);
 			vOffset += line.vertices.length;
 			mOffset += line.transform.length;
@@ -131,17 +133,17 @@ export class LinePass {
 		device.queue.writeBuffer(this.matrixBuffer, 0, matrices);
 
 		// indirect buffer
-		if (!this.vertexToObjectIDBuffer || this.vertexToObjectIDBuffer.size !== vertexToObjectID.byteLength) {
-			if (this.vertexToObjectIDBuffer) {
-				this.vertexToObjectIDBuffer.destroy();
+		if (!this.vertexToMatrixBuffer || this.vertexToMatrixBuffer.size !== vertexToObjectID.byteLength) {
+			if (this.vertexToMatrixBuffer) {
+				this.vertexToMatrixBuffer.destroy();
 			}
-			this.vertexToObjectIDBuffer = device.createBuffer({
+			this.vertexToMatrixBuffer = device.createBuffer({
 				label: 'Vertex to ObjectID Buffer',
 				size: vertexToObjectID.byteLength,
 				usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
 			});
 		}
-		device.queue.writeBuffer(this.vertexToObjectIDBuffer, 0, vertexToObjectID);
+		device.queue.writeBuffer(this.vertexToMatrixBuffer, 0, vertexToObjectID);
 
 	}
 
@@ -168,6 +170,11 @@ export class LinePass {
 		passEncoder.end();
 
 		device.queue.submit([commandEncoder.finish()]);
+
+
+		// vertices [1,0.5,1,0]
+		// ptr to matrix [0,0,0,1,1,1,2,2,2,2,2]
+
 	}
 
 	add(node: Line) {

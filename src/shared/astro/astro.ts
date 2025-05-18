@@ -1,32 +1,40 @@
 import {Node} from "../node/node"
 import {Player} from "./player";
-import {EventSystem, Topic} from "../event-system";
-import {inject} from "../injector";
+import {Topic} from "../event-system";
 import {Camera} from "../node/2D/camera";
 import {Ray} from "@dimforge/rapier2d-deterministic-compat";
 
+export const isClient = typeof window !== 'undefined';
+export const isServer = !isClient;
+
 export class Astro extends Node {
 	// Game Scene
-	isClient = typeof window !== 'undefined';
 
 	camera: Camera;
+	players: Player[] = [];
 
 	constructor() {
 		super();
 
-
-		if (this.isClient) {
+		if (isClient) {
 			this.eventSystem.listen(Topic.ReceiveUserId, userid => {
-				const myPlayer = this.getChildren(Player).find(p => p.name);
+				const myPlayer = this.getChildren(Player).find(p => p.userid);
 				this.camera = new Camera();
 				this.addChild(this.camera)
 			});
+
+			this.eventSystem.listen(Topic.Update, data => {
+				for (let i = 0; i < this.players.length; ++i) {
+					this.players[i].transform = data.players[i];
+				}
+			})
 		}
 
-
-		this.eventSystem.listen(Topic.PlayerConnected, userid =>
-			this.addChild(new Player(userid))
-		);
+		this.eventSystem.listen(Topic.PlayerConnected, userid => {
+			const newPlayer = new Player(userid);
+			this.players.push(newPlayer);
+			this.addChild(newPlayer);
+		});
 
 		this.eventSystem.listen(Topic.PlayerDisconnected, userid =>
 			1
@@ -34,15 +42,21 @@ export class Astro extends Node {
 	}
 
 	async init () {
-
 		console.log(Ray)
 	}
 
 	update() {
-
-		if (this.isClient) {
+		super.update();
+		if (isClient) {
 			// update camera
 		}
 
+		if (isServer) {
+			const transforms = []
+			for (const player of this.players) {
+				transforms.push(player.transform);
+			}
+			this.eventSystem.publish(Topic.Update, {players: transforms});
+		}
 	}
 }

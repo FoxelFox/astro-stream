@@ -1,4 +1,6 @@
 import {Node} from "./node/node";
+import {Control} from "./control";
+import {Player} from "./astro/player";
 
 export enum Topic {
 	Update,
@@ -7,17 +9,21 @@ export enum Topic {
 	ReceiveUserId,
 	PlayerConnected,
 	PlayerDisconnected,
-	CanvasResize
+	CanvasResize,
+	ClientControlEvent,
+	PlayerControlEvent
 }
 
 export interface TopicDataMap {
-	[Topic.Update]: any
+	[Topic.Update]: { players: Float32Array[] }
 	[Topic.NodeDestroy]: Node
 	[Topic.NodeCreate]: Node
-	[Topic.ReceiveUserId]: string;
-	[Topic.PlayerConnected]: string;
-	[Topic.PlayerDisconnected]: string;
-	[Topic.CanvasResize]: { width: number; height: number };
+	[Topic.ReceiveUserId]: string
+	[Topic.PlayerConnected]: string
+	[Topic.PlayerDisconnected]: string
+	[Topic.CanvasResize]: { width: number; height: number }
+	[Topic.ClientControlEvent]: Control
+	[Topic.PlayerControlEvent]: {userid: string, control: Control}
 }
 
 

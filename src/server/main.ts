@@ -10,13 +10,15 @@ class Backend {
 
 	eventSystem = inject(EventSystem);
 	game = new Astro();
+
 	connections: {[id: string]: ServerWebSocket<unknown>} = {};
 
-	userConnected(ws: ServerWebSocket<unknown>) {
+	userConnected(ws: ServerWebSocket<unknown>): string {
 		for (let userid = Date.now().toString(); this.connections[userid] === undefined;) {
 			this.connections[userid] = ws;
 			this.eventSystem.publish(Topic.PlayerConnected, userid);
 			ws.send(JSON.stringify({topic: Topic.ReceiveUserId, userid}));
+			return userid;
 		}
 	}
 
@@ -44,6 +46,10 @@ class Backend {
 
 	async main() {
 		await this.game.init();
+
+		setInterval(() => {
+			this.game.update();
+		}, 100);
 	}
 }
 
@@ -100,10 +106,21 @@ backend.main().then(() => {
 			open(ws) {
 				ws.subscribe('update');
 				ws.subscribe('userid');
-				backend.userConnected(ws);
+
+				ws.data = backend.userConnected(ws);
+
 			},
-			message(ws, message) {
-				console.log(message)
+			message(ws, ev: string) {
+				const e: {topic: Topic, message: any} = JSON.parse(ev);
+
+				switch (e.topic) {
+					case Topic.ClientControlEvent:
+						eventSystem.publish(Topic.PlayerControlEvent, {
+							userid: ws.data as string,
+							control: e.message
+						});
+						break;
+				}
 			},
 			close(ws, code: number, reason: string) {
 				ws.unsubscribe('update');

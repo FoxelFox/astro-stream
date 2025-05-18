@@ -1,13 +1,16 @@
 import {Node2D} from "../node/2D/node-2d";
 import {Line} from "../node/2D/line";
+import {Control} from "../control";
+import {Topic} from "../event-system";
+import {mat3, vec2} from "wgpu-matrix";
+import {isServer} from "./astro";
 
 
 export class Player extends Node2D {
 
+	keys: Control = {}
 
-	keys: {[key: string]: boolean} = {}
-
-	constructor(public name: string) {
+	constructor(public userid: string) {
 		super();
 		const w = 0.75;
 		const h = 1;
@@ -24,5 +27,21 @@ export class Player extends Node2D {
 		)
 		this.addChild(polys);
 
+
+		this.eventSystem.listen(Topic.PlayerControlEvent, data => {
+			if (data.userid === this.userid) {
+				this.keys = data.control;
+			}
+		});
 	}
+
+	update() {
+		super.update();
+		if (isServer) {
+			if (this.keys.forward) {
+				this.transform = mat3.translate(this.transform, vec2.fromValues(1,0));
+			}
+		}
+	}
+
 }
