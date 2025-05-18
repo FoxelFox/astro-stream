@@ -7,6 +7,6 @@ export class Node2D extends Node {
 	getGlobalTransform() {
 		// @ts-ignore
 		// TODO FIXME LATER !!!
-		return this.parent.parent.transform
+		return this.parent.transform
 	}
 }

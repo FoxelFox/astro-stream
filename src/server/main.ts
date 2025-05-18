@@ -134,7 +134,7 @@ backend.main().then(() => {
 	const networkEvents = [Topic.Update, Topic.PlayerConnected, Topic.PlayerDisconnected];
 	for (const topic of networkEvents) {
 		eventSystem.listen(topic, (data) => {
-			webSocketServer.publish('update', JSON.stringify({topic, message: data}));
+			webSocketServer.publish('update', JSON.stringify({topic, message: data}),true);
 		});
 	}
 });

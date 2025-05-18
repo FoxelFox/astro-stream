@@ -16,6 +16,7 @@ socket.onmessage = (ev) => {
 	eventSystem.publish(data.topic, data.message);
 }
 
+
 const gpu = new GPU();
 const game = new Astro();
 const input = new Input();
