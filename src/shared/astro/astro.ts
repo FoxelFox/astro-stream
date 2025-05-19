@@ -3,6 +3,7 @@ import {Player} from "./player";
 import {Topic} from "../event-system";
 import {Camera} from "../node/2D/camera";
 import {Ray} from "@dimforge/rapier2d-deterministic-compat";
+import {mat4} from "wgpu-matrix";
 
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
@@ -25,7 +26,7 @@ export class Astro extends Node {
 
 			this.eventSystem.listen(Topic.Update, data => {
 				for (let i = 0; i < this.players.length; ++i) {
-					this.players[i].transform = data.players[i];
+					this.players[i].transform = new Float32Array(data.players[i]);
 				}
 			})
 		}
@@ -54,7 +55,7 @@ export class Astro extends Node {
 		if (isServer) {
 			const transforms = []
 			for (const player of this.players) {
-				transforms.push(player.transform);
+				transforms.push(Array.from(player.transform));
 			}
 			this.eventSystem.publish(Topic.Update, {players: transforms});
 		}

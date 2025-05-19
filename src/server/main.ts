@@ -49,7 +49,7 @@ class Backend {
 
 		setInterval(() => {
 			this.game.update();
-		}, 100);
+		}, 1000/60);
 	}
 }
 

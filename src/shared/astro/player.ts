@@ -2,7 +2,7 @@ import {Node2D} from "../node/2D/node-2d";
 import {Line} from "../node/2D/line";
 import {Control} from "../control";
 import {Topic} from "../event-system";
-import {mat3, vec2} from "wgpu-matrix";
+import {mat3, mat4, vec2, vec3} from "wgpu-matrix";
 import {isServer} from "./astro";
 
 
@@ -38,8 +38,21 @@ export class Player extends Node2D {
 	update() {
 		super.update();
 		if (isServer) {
+
 			if (this.keys.forward) {
-				this.transform = mat3.translate(this.transform, vec2.fromValues(1,0));
+				this.transform = mat4.translate(this.transform, vec3.fromValues(0,1,0));
+			}
+
+			if (this.keys.backward) {
+				this.transform = mat4.translate(this.transform, vec3.fromValues(0,-1,0));
+			}
+
+			if (this.keys.right) {
+				this.transform = mat4.translate(this.transform, vec3.fromValues(1,0,0));
+			}
+
+			if (this.keys.left) {
+				this.transform = mat4.translate(this.transform, vec3.fromValues(-1,0,0));
 			}
 		}
 	}

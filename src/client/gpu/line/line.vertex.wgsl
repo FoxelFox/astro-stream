@@ -8,5 +8,6 @@ fn main(
 ) -> @builtin(position) vec4<f32> {
 
 	let m = matrices[vertex_matrix_id];
-	return vec4<f32>(in_vertex_position, 0.0, 1.0) * camera * m ;
+	let _c = camera;
+	return camera * m * vec4<f32>(in_vertex_position, 0.0, 1.0);
 }
