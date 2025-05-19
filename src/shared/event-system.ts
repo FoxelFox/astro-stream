@@ -18,7 +18,7 @@ export interface TopicDataMap {
 	[Topic.Update]: { players: Float32Array[] }
 	[Topic.NodeDestroy]: Node
 	[Topic.NodeCreate]: Node
-	[Topic.ReceiveUserId]: string
+	[Topic.ReceiveUserId]: {userid: string}
 	[Topic.PlayerConnected]: string
 	[Topic.PlayerDisconnected]: string
 	[Topic.CanvasResize]: { width: number; height: number }

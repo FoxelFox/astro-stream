@@ -11,7 +11,6 @@ socket.onopen = (ev) => {
 }
 
 socket.onmessage = (ev) => {
-	console.log(ev)
 	const data = JSON.parse(ev.data);
 	eventSystem.publish(data.topic, data.message);
 }

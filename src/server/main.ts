@@ -17,7 +17,7 @@ class Backend {
 		for (let userid = Date.now().toString(); this.connections[userid] === undefined;) {
 			this.connections[userid] = ws;
 			this.eventSystem.publish(Topic.PlayerConnected, userid);
-			ws.send(JSON.stringify({topic: Topic.ReceiveUserId, userid}));
+			ws.send(JSON.stringify({topic: Topic.ReceiveUserId, message: {userid: userid}}));
 			return userid;
 		}
 	}

@@ -1,8 +1,8 @@
-import {mat3, Mat3} from "wgpu-matrix";
+import {Mat3, mat4, Mat4} from "wgpu-matrix";
 import {Node} from "../node";
 
 export class Node2D extends Node {
-	transform: Mat3 = mat3.identity();
+	transform: Mat4 = mat4.identity();
 
 	getGlobalTransform() {
 		// @ts-ignore

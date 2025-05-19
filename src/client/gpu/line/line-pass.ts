@@ -11,7 +11,7 @@ export class LinePass {
 
 	vertexBuffer: GPUBuffer
 	matrixBuffer: GPUBuffer
-	uniformBuffer: GPUBuffer
+	cameraUniformBuffer: GPUBuffer
 	vertexToMatrixBuffer: GPUBuffer
 
 	uniformBindGroup: GPUBindGroup;
@@ -23,11 +23,14 @@ export class LinePass {
 
 	update(camera: Mat4) {
 		if (this.linesNeedUpdate) {
-			this.updateBuffers();
+			this.updateBuffers(camera, true);
 			this.linesNeedUpdate = false;
+		} else {
+			this.updateBuffers(camera);
 		}
 
-		device.queue.writeBuffer(this.uniformBuffer, 0, camera);
+
+
 
 		this.render();
 	}
@@ -48,6 +51,10 @@ export class LinePass {
 						shaderLocation: 0,
 						offset: 0,
 						format: 'float32x2'
+					}, {
+						shaderLocation: 1,
+						offset: 0,
+						format: 'uint32'
 					}]
 				}]
 			},
@@ -66,57 +73,74 @@ export class LinePass {
 			}
 		});
 
-		this.uniformBuffer = device.createBuffer({
-			size: 16 * Float32Array.BYTES_PER_ELEMENT,
-			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-		});
 
-		this.uniformBindGroup = device.createBindGroup({
-			layout: this.pipeline.getBindGroupLayout(0),
-			entries: [{
-				binding: 0,
-				resource: {buffer: this.uniformBuffer}
-			}]
-		});
 	}
 
-	updateBuffers() {
+	updateBuffers(camera: Mat4, fullUpdate?: boolean) {
 		this.vertexCount = 0;
 		for (const line of this.lines) {
 			this.vertexCount += line.vertices.length / 2;
 		}
 
 		const vertices = new Float32Array(this.vertexCount * 2)
-		const matrices = new Float32Array(12 * this.lines.length);
+		const matrices = new Float32Array(16 * this.lines.length);
 		const vertexToObjectID = new Uint32Array(length);
 		let vOffset = 0;
 		let mOffset = 0;
 		let i = 0;
 		for (const line of this.lines) {
-			vertices.set(line.vertices, vOffset);
-
-
 			matrices.set(line.getGlobalTransform(), mOffset);
-			vertexToObjectID.fill(i, vOffset, line.vertices.length);
+
+			if (fullUpdate) {
+				vertices.set(line.vertices, vOffset);
+				vertexToObjectID.fill(i, vOffset, line.vertices.length);
+			}
+
 			vOffset += line.vertices.length;
 			mOffset += line.transform.length;
 			i++;
 		}
 
-		// vertex buffer
-		if (!this.vertexBuffer || this.vertexBuffer.size !== vertices.byteLength) {
-			if (this.vertexBuffer) {
-				this.vertexBuffer.destroy();
+		if (fullUpdate) {
+			// vertex buffer
+			if (!this.vertexBuffer || this.vertexBuffer.size !== vertices.byteLength) {
+				if (this.vertexBuffer) {
+					this.vertexBuffer.destroy();
+				}
+
+				this.vertexBuffer = device.createBuffer({
+					label: 'Vertex Buffer for Line Strip',
+					size: vertices.byteLength,
+					usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+				});
 			}
 
-			this.vertexBuffer = device.createBuffer({
-				label: 'Vertex Buffer for Line Strip',
-				size: vertices.byteLength,
-				usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
-			});
+			device.queue.writeBuffer(this.vertexBuffer, 0, vertices)
+
+			// indirect buffer
+			if (!this.vertexToMatrixBuffer || this.vertexToMatrixBuffer.size !== vertexToObjectID.byteLength) {
+				if (this.vertexToMatrixBuffer) {
+					this.vertexToMatrixBuffer.destroy();
+				}
+				this.vertexToMatrixBuffer = device.createBuffer({
+					label: 'Vertex to ObjectID Buffer',
+					size: vertexToObjectID.byteLength,
+					usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+				});
+			}
+			device.queue.writeBuffer(this.vertexToMatrixBuffer, 0, vertexToObjectID);
 		}
 
-		device.queue.writeBuffer(this.vertexBuffer, 0, vertices)
+
+		let recreateUniform = false;
+		if (!this.cameraUniformBuffer) {
+			this.cameraUniformBuffer = device.createBuffer({
+				size: 16 * Float32Array.BYTES_PER_ELEMENT,
+				usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+			});
+			recreateUniform = true;
+		}
+		device.queue.writeBuffer(this.cameraUniformBuffer, 0, camera);
 
 		// vertexToObjectID buffer
 		if (!this.matrixBuffer || this.matrixBuffer.size !== matrices.byteLength) {
@@ -129,21 +153,23 @@ export class LinePass {
 				size: matrices.byteLength,
 				usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
 			});
+			recreateUniform = true;
 		}
 		device.queue.writeBuffer(this.matrixBuffer, 0, matrices);
 
-		// indirect buffer
-		if (!this.vertexToMatrixBuffer || this.vertexToMatrixBuffer.size !== vertexToObjectID.byteLength) {
-			if (this.vertexToMatrixBuffer) {
-				this.vertexToMatrixBuffer.destroy();
-			}
-			this.vertexToMatrixBuffer = device.createBuffer({
-				label: 'Vertex to ObjectID Buffer',
-				size: vertexToObjectID.byteLength,
-				usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+		if (recreateUniform) {
+			this.uniformBindGroup = device.createBindGroup({
+				layout: this.pipeline.getBindGroupLayout(0),
+				entries: [{
+					binding: 0,
+					resource: {buffer: this.cameraUniformBuffer}
+				}, {
+					binding: 1,
+					resource: {buffer: this.matrixBuffer}
+				}]
 			});
 		}
-		device.queue.writeBuffer(this.vertexToMatrixBuffer, 0, vertexToObjectID);
+
 
 	}
 
@@ -166,6 +192,7 @@ export class LinePass {
 		passEncoder.setPipeline(this.pipeline);
 		passEncoder.setBindGroup(0, this.uniformBindGroup);
 		passEncoder.setVertexBuffer(0, this.vertexBuffer);
+		passEncoder.setVertexBuffer(1, this.vertexToMatrixBuffer);
 		passEncoder.draw(this.vertexCount);
 		passEncoder.end();
 
@@ -187,6 +214,4 @@ export class LinePass {
 		this.lines.splice(i, 1);
 		this.linesNeedUpdate = true;
 	}
-
-
 }

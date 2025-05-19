@@ -17,8 +17,8 @@ export class Astro extends Node {
 		super();
 
 		if (isClient) {
-			this.eventSystem.listen(Topic.ReceiveUserId, userid => {
-				const myPlayer = this.getChildren(Player).find(p => p.userid);
+			this.eventSystem.listen(Topic.ReceiveUserId, data => {
+				const myPlayer = this.getChildren(Player).find(p => p.userid == data.userid);
 				this.camera = new Camera();
 				this.addChild(this.camera)
 			});
