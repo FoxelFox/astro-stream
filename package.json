@@ -4,8 +4,8 @@
 	"description": "",
 	"main": "dist/index.js",
 	"scripts": {
-		"client": "bun build src/client/index.html --outdir=dist --watch --sourcemap --chunk-naming [name].[ext]",
-		"server": "bun src/server/main.ts --watch"
+		"client": "bun build src/client/index.html --outdir=dist --sourcemap --chunk-naming [name].[ext]",
+		"server": "bun src/server/main.ts"
 	},
 	"devDependencies": {
 		"typescript": "^5.5.3"
