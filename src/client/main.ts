@@ -4,7 +4,7 @@ import {inject} from "../shared/injector";
 import {GPU} from "./gpu/gpu";
 import {Input} from "./input";
 
-const socket = new WebSocket(`ws://${location.hostname}:3001`);
+const socket = new WebSocket(`wss://ws.${location.hostname}`);
 
 socket.onopen = (ev) => {
 	console.log('connected')
