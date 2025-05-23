@@ -84,7 +84,7 @@ export class LinePass {
 
 		const vertices = new Float32Array(this.vertexCount * 2)
 		const matrices = new Float32Array(16 * this.lines.length);
-		const vertexToObjectID = new Uint32Array(length);
+		const vertexToObjectID = new Uint32Array(vertices.length);
 		let vOffset = 0;
 		let mOffset = 0;
 		let i = 0;
