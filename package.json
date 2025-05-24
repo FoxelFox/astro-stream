@@ -12,9 +12,9 @@
 	},
 	"private": true,
 	"dependencies": {
-		"@dimforge/rapier2d-deterministic-compat": "^0.16.2",
 		"@types/bun": "^1.2.12",
 		"@webgpu/types": "^0.1.60",
+		"planck": "^1.3.0",
 		"wgpu-matrix": "^3.4.0"
 	}
 }

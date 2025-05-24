@@ -51,7 +51,7 @@ export let canvas: HTMLCanvasElement
 		context.configure({
 			device,
 			format: presentationFormat,
-			alphaMode: 'opaque'
+			alphaMode: 'premultiplied'
 		});
 
 		this.lines.init();
@@ -71,7 +71,7 @@ export let canvas: HTMLCanvasElement
 
 	update() {
 		if (this.camera) {
-			this.lines.update(this.camera.cam);
+			this.lines.update(this.camera);
 		}
 	}
 

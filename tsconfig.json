@@ -3,6 +3,6 @@
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleResolution": "node",
-		"types": ["@webgpu/types"]
+		"types": ["@webgpu/types", "planck/types"]
 	}
 }

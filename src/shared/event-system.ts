@@ -1,6 +1,5 @@
 import {Node} from "./node/node";
 import {Control} from "./control";
-import {Player} from "./astro/player";
 import {Type} from "./astro/deserialize";
 
 export enum Topic {

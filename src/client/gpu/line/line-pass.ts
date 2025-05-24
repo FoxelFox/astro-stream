@@ -3,6 +3,7 @@ import {context, device, GPU} from "../gpu";
 import {Mat3, Mat4, mat4} from "wgpu-matrix";
 import vertexShader from "./line.vertex.wgsl" with { type: "text" };
 import fragmentShader from "./line.fragment.wgsl" with { type: "text" };
+import {Camera} from "../../../shared/node/2D/camera";
 
 export class LinePass {
 
@@ -18,21 +19,20 @@ export class LinePass {
 
 	pipeline: GPURenderPipeline
 	vertexCount: number
-	
 
-
-	update(camera: Mat4) {
+	update(camera: Camera) {
 		if (this.linesNeedUpdate) {
-			this.updateBuffers(camera, true);
+			console.log("Lines need Update")
+			this.updateBuffers(camera.cam, true);
 			this.linesNeedUpdate = false;
 		} else {
-			this.updateBuffers(camera);
+			this.updateBuffers(camera.cam);
 		}
 
 
 
 
-		this.render();
+		this.render(camera);
 	}
 
 	init() {
@@ -68,11 +68,26 @@ export class LinePass {
 					code: fragmentShader,
 				}),
 				targets: [{
-					format: navigator.gpu.getPreferredCanvasFormat()
+					format: navigator.gpu.getPreferredCanvasFormat(),
+					blend: {
+						color: {
+							srcFactor: 'src-alpha',
+							dstFactor: 'one',
+							operation: 'add',
+						},
+						alpha: {
+							srcFactor: 'zero',
+							dstFactor: 'one',
+							operation: 'add',
+						},
+					}
 				}]
 			},
 			primitive: {
 				topology: 'line-list'
+			},
+			multisample: {
+				count: 4,
 			}
 		});
 
@@ -176,19 +191,21 @@ export class LinePass {
 
 	}
 
-	render() {
+	render(camera: Camera) {
 
 		const commandEncoder = device.createCommandEncoder({ label: 'Command Encoder' });
 		const textureView = context.getCurrentTexture().createView();
 
 		const renderPassDescriptor: GPURenderPassDescriptor = {
 			colorAttachments: [{
-				view: textureView,
-				clearValue: { r: 0.05, g: 0.05, b: 0.1, a: 1.0 }, // Dark blue-ish background
+				view: camera.multisampleTexture.createView(),
+				clearValue: { r: 0.05, g: 0.05, b: 0.1, a: 1.0 },
 				loadOp: 'clear',
-				storeOp: 'store'
-			}]
+				storeOp: 'store',
+				resolveTarget: textureView
+			}],
 		};
+
 
 		const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
 
@@ -200,11 +217,6 @@ export class LinePass {
 		passEncoder.end();
 
 		device.queue.submit([commandEncoder.finish()]);
-
-
-		// vertices [1,0.5,1,0]
-		// ptr to matrix [0,0,0,1,1,1,2,2,2,2,2]
-
 	}
 
 	add(node: Line) {

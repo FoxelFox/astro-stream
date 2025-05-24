@@ -20,6 +20,12 @@ export class Node {
 		this.children.push(node);
 	}
 
+	removeChild(node: Node) {
+		const i = this.children.indexOf(node);
+		this.children[i].destroy();
+		this.children.splice(i, 1);
+	}
+
 	destroy() {
 		this.eventSystem.publish(Topic.NodeDestroy, this);
 	}
