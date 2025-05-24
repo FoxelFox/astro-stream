@@ -13,21 +13,23 @@ export class Player extends Node2D {
 
 	constructor() {
 		super();
-		const w = 0.75;
-		const h = 1;
-		const polys = new Line();
-		polys.vertices = new Float32Array([
-			0.0, h,
-			w, -h,
-			w, -h,
-			-w, -h,
-			-w, -h,
-			0.0, h,
-		]);
-		polys.color = new Float32Array([1.0,1.0,1.0,1.0]);
 
-		this.addChild(polys);
+		if (isServer) {
+			const w = 0.75;
+			const h = 1;
+			const polys = new Line();
+			polys.vertices = new Float32Array([
+				0.0, h,
+				w, -h,
+				w, -h,
+				-w, -h,
+				-w, -h,
+				0.0, h,
+			]);
+			polys.color = new Float32Array([1.0,1.0,1.0,1.0]);
 
+			this.addChild(polys);
+		}
 
 		this.eventSystem.listen(Topic.PlayerControlEvent, data => {
 			if (data.userid === this.userid) {

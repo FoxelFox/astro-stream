@@ -51,7 +51,10 @@ export class LinePass {
 						shaderLocation: 0,
 						offset: 0,
 						format: 'float32x2'
-					}, {
+					}]
+				}, {
+					arrayStride: Float32Array.BYTES_PER_ELEMENT,
+					attributes: [{
 						shaderLocation: 1,
 						offset: 0,
 						format: 'uint32'
@@ -84,7 +87,7 @@ export class LinePass {
 
 		const vertices = new Float32Array(this.vertexCount * 2)
 		const matrices = new Float32Array(16 * this.lines.length);
-		const vertexToObjectID = new Uint32Array(vertices.length);
+		const vertexToObjectID = new Uint32Array(this.vertexCount);
 		let vOffset = 0;
 		let mOffset = 0;
 		let i = 0;
@@ -93,7 +96,7 @@ export class LinePass {
 
 			if (fullUpdate) {
 				vertices.set(line.vertices, vOffset);
-				vertexToObjectID.fill(i, vOffset, line.vertices.length);
+				vertexToObjectID.fill(i, vOffset /2, vOffset /2 + line.vertices.length /2);
 			}
 
 			vOffset += line.vertices.length;

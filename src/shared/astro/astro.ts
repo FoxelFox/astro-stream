@@ -3,6 +3,7 @@ import {Player} from "./player";
 import {Topic} from "../event-system";
 import {Camera} from "../node/2D/camera";
 import {Ray} from "@dimforge/rapier2d-deterministic-compat";
+import {deserialize} from "./deserialize";
 
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
@@ -16,8 +17,6 @@ export class Astro extends Node {
 		super();
 
 		if (isClient) {
-			this.eventSystem.listen(Topic.Sync, data => this.deserialize(data));
-
 			this.eventSystem.listen(Topic.ReceiveUserId, data => {
 				const myPlayer = this.getChildren(Player).find(p => p.userid == data.userid);
 				this.camera = new Camera();
@@ -43,7 +42,7 @@ export class Astro extends Node {
 		);
 	}
 
-	async init () {
+	init () {
 		console.log(Ray)
 	}
 

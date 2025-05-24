@@ -1,10 +1,31 @@
-import {Astro} from "../shared/astro/astro";
 import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";
 import {GPU} from "./gpu/gpu";
 import {Input} from "./input";
+import {deserialize} from "../shared/astro/deserialize";
 
 const url = location.hostname === 'localhost' ? 'ws://localhost:3001' : `wss://ws.${location.hostname}`;
+let game;
+
+const eventSystem = inject(EventSystem);
+eventSystem.listen(Topic.Sync, async data => {
+	game = deserialize(data)
+	game.init();
+
+	const networkEvents = [Topic.ClientControlEvent];
+	for (const topic of networkEvents) {
+		eventSystem.listen(topic, (data) => {
+			socket.send(JSON.stringify({topic, message: data}));
+		});
+	}
+});
+
+
+
+const gpu = new GPU();
+await gpu.init();
+const input = new Input();
+
 const socket = new WebSocket(url);
 
 socket.onopen = (ev) => {
@@ -17,20 +38,12 @@ socket.onmessage = (ev) => {
 }
 
 
-const gpu = new GPU();
-const game = new Astro();
-const input = new Input();
-const eventSystem = inject(EventSystem);
 
-await gpu.init();
-await game.init();
 
-const networkEvents = [Topic.ClientControlEvent];
-for (const topic of networkEvents) {
-	eventSystem.listen(topic, (data) => {
-		socket.send(JSON.stringify({topic, message: data}));
-	});
-}
+
+
+
+
 
 function loop() {
 	gpu.update();
