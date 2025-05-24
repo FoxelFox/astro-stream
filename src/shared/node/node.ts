@@ -5,10 +5,9 @@ export class Node {
 
 	eventSystem = inject(EventSystem);
 	parent?: Node;
+	children: Array<Node> = [];
 
-	constructor(
-		private children: Array<Node> = []
-	) {
+	constructor() {
 		this.eventSystem.publish(Topic.NodeCreate, this);
 	}
 
@@ -29,6 +28,17 @@ export class Node {
 		for (const child of this.children) {
 			child.update();
 		}
+	}
+
+	serialize() {
+		return {
+			type: this.constructor.name,
+			children: this.children.map(c => c.serialize())
+		}
+	}
+
+	deserialize(json: any): Node {
+		return this;
 	}
 }
 

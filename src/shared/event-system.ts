@@ -1,8 +1,10 @@
 import {Node} from "./node/node";
 import {Control} from "./control";
 import {Player} from "./astro/player";
+import {Type} from "./astro/deserialize";
 
 export enum Topic {
+	Sync,
 	Update,
 	NodeDestroy,
 	NodeCreate,
@@ -15,6 +17,7 @@ export enum Topic {
 }
 
 export interface TopicDataMap {
+	[Topic.Sync]: Type
 	[Topic.Update]: { players: Float32Array[] }
 	[Topic.NodeDestroy]: Node
 	[Topic.NodeCreate]: Node

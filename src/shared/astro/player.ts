@@ -3,28 +3,29 @@ import {Line} from "../node/2D/line";
 import {Control} from "../control";
 import {Topic} from "../event-system";
 import {mat3, mat4, vec2, vec3} from "wgpu-matrix";
-import {isServer} from "./astro";
+import {Astro, isServer} from "./astro";
 
 
 export class Player extends Node2D {
 
 	keys: Control = {}
+	userid: string
 
-	constructor(public userid: string) {
+	constructor() {
 		super();
 		const w = 0.75;
 		const h = 1;
-		const polys = new Line(
-			new Float32Array([
-				0.0, h,
-				w, -h,
-				w, -h,
-				-w, -h,
-				-w, -h,
-				0.0, h,
-			]),
-			new Float32Array([1.0,1.0,1.0,1.0])
-		)
+		const polys = new Line();
+		polys.vertices = new Float32Array([
+			0.0, h,
+			w, -h,
+			w, -h,
+			-w, -h,
+			-w, -h,
+			0.0, h,
+		]);
+		polys.color = new Float32Array([1.0,1.0,1.0,1.0]);
+
 		this.addChild(polys);
 
 
@@ -56,5 +57,13 @@ export class Player extends Node2D {
 			}
 		}
 	}
+
+	serialize(): any {
+		const o = super.serialize();
+		o.userid = this.userid;
+		return o;
+	}
+
+
 
 }

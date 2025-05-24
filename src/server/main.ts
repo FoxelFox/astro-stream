@@ -3,6 +3,7 @@ import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";
 import * as path from "node:path";
 import {Astro} from "../shared/astro/astro";
+import {deserialize} from "../shared/astro/deserialize";
 
 const publicDir = path.resolve(import.meta.dir, '../../dist');
 
@@ -14,12 +15,19 @@ class Backend {
 	connections: {[id: string]: ServerWebSocket<unknown>} = {};
 
 	userConnected(ws: ServerWebSocket<unknown>): string {
-		for (let userid = Date.now().toString(); this.connections[userid] === undefined;) {
-			this.connections[userid] = ws;
-			this.eventSystem.publish(Topic.PlayerConnected, userid);
-			ws.send(JSON.stringify({topic: Topic.ReceiveUserId, message: {userid: userid}}));
-			return userid;
-		}
+
+		let userid
+		do {
+			userid = Date.now().toString();
+			if (!this.connections[userid]) {
+				this.connections[userid] = ws;
+			}
+		} while (this.connections[userid] === undefined)
+
+		this.eventSystem.publish(Topic.PlayerConnected, userid);
+		ws.send(JSON.stringify({topic: Topic.Sync, message: this.game.serialize()}));
+		ws.send(JSON.stringify({topic: Topic.ReceiveUserId, message: {userid: userid}}));
+		return userid;
 	}
 
 	userDisconnected(ws: ServerWebSocket<unknown>) {
