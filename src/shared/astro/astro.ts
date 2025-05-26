@@ -3,13 +3,19 @@ import {Player} from "./player";
 import {Topic} from "../event-system";
 import {Camera} from "../node/2D/camera";
 import {mat4, vec3} from "wgpu-matrix";
-import {Edge, World} from "planck";
+import {Edge, Settings, World} from "planck";
+import {Astroid} from "./astroid";
+import {Bullet} from "./bullet";
+
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
 
 export let world = new World({
 	gravity: {x: 0, y: 0},
 });
+
+//Settings.lengthUnitsPerMeter = 1;
+Settings.velocityThreshold = 0;
 
 export class Astro extends Node {
 	// Game Scene
@@ -28,11 +34,29 @@ export class Astro extends Node {
 			});
 
 			this.eventSystem.listen(Topic.Update, data => {
+
+				// TODO this can be generic
 				const players = this.getChildren(Player);
 				for (let i = 0; i < players.length; ++i) {
 					players[i].transform = new Float32Array(data.players[i]);
 				}
-			})
+
+				const astroids = this.getChildren(Astroid);
+				for (let i = 0; i < astroids.length; ++i) {
+					astroids[i].transform = new Float32Array(data.astroids[i]);
+				}
+
+				const bullets = this.getChildren(Bullet);
+				for (let i = 0; i < bullets.length; ++i) {
+					bullets[i].transform = new Float32Array(data.bullets[i]);
+				}
+			});
+
+			this.eventSystem.listen(Topic.BulletSpawn, data => {
+				const bullet = new Bullet();
+				bullet.transform = new Float32Array(data.transform);
+				this.addChild(bullet);
+			});
 		}
 
 		this.eventSystem.listen(Topic.PlayerConnected, userid => {
@@ -87,8 +111,29 @@ export class Astro extends Node {
 		});
 
 		platformRight.createFixture({
-			shape: new Edge({x: 0, y: -50}, {x: 0, y: 50}),
+			shape: new Edge({x: 0, y: -50}, {x: 0, y: 50})
 		});
+
+
+		this.generateAstroids();
+
+		world.on('begin-contact', contact => {
+			const a = contact.getFixtureA().getBody().getUserData();
+			const b = contact.getFixtureB().getBody().getUserData();
+
+			if (a instanceof Bullet) {
+				this.removeChild(a);
+			}
+			if (b instanceof Bullet) {
+				this.removeChild(b);
+			}
+		});
+	}
+
+	generateAstroids() {
+		for (let i = 0; i < 100; ++i) {
+			this.addChild(new Astroid());
+		}
 	}
 
 	update() {
@@ -101,12 +146,32 @@ export class Astro extends Node {
 		}
 
 		if (isServer) {
-			const transforms = []
+			// TODO This can be generic
+			const playerTransforms = []
+			const astroidTransforms = []
+			const bulletTransforms = []
+
 			const players = this.getChildren(Player);
+			const astroids = this.getChildren(Astroid);
+			const bullets = this.getChildren(Bullet);
+
 			for (const player of players) {
-				transforms.push(Array.from(player.transform));
+				playerTransforms.push(Array.from(player.transform));
 			}
-			this.eventSystem.publish(Topic.Update, {players: transforms});
+
+			for (const astroid of astroids) {
+				astroidTransforms.push(Array.from(astroid.transform));
+			}
+
+			for (const bullet of bullets) {
+				bulletTransforms.push(Array.from(bullet.transform));
+			}
+
+			this.eventSystem.publish(Topic.Update, {
+				players: playerTransforms,
+				astroids: astroidTransforms,
+				bullets: bulletTransforms
+			});
 		}
 	}
 }

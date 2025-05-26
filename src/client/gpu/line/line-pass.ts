@@ -11,6 +11,7 @@ export class LinePass {
 	linesNeedUpdate: boolean = true
 
 	vertexBuffer: GPUBuffer
+	colorBuffer: GPUBuffer
 	matrixBuffer: GPUBuffer
 	cameraUniformBuffer: GPUBuffer
 	vertexToMatrixBuffer: GPUBuffer
@@ -59,6 +60,13 @@ export class LinePass {
 						offset: 0,
 						format: 'uint32'
 					}]
+				}, {
+					arrayStride: 4 * Float32Array.BYTES_PER_ELEMENT,
+					attributes: [{
+						shaderLocation: 2,
+						offset: 0,
+						format: 'float32x4'
+					}]
 				}]
 			},
 			fragment: {
@@ -101,16 +109,23 @@ export class LinePass {
 		}
 
 		const vertices = new Float32Array(this.vertexCount * 2)
+		const colors = new Float32Array(this.vertexCount * 4)
 		const matrices = new Float32Array(16 * this.lines.length);
 		const vertexToObjectID = new Uint32Array(this.vertexCount);
 		let vOffset = 0;
 		let mOffset = 0;
+		let cOffset = 0;
 		let i = 0;
 		for (const line of this.lines) {
 			matrices.set(line.getGlobalTransform(), mOffset);
 
 			if (fullUpdate) {
 				vertices.set(line.vertices, vOffset);
+
+				for (let c = 0; c < line.vertices.length; c += 2) {
+					colors.set(line.color, cOffset);
+					cOffset += line.color.length;
+				}
 				vertexToObjectID.fill(i, vOffset /2, vOffset /2 + line.vertices.length /2);
 			}
 
@@ -127,7 +142,7 @@ export class LinePass {
 				}
 
 				this.vertexBuffer = device.createBuffer({
-					label: 'Vertex Buffer for Line Strip',
+					label: 'Vertex Buffer for Lines',
 					size: vertices.byteLength,
 					usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
 				});
@@ -147,6 +162,21 @@ export class LinePass {
 				});
 			}
 			device.queue.writeBuffer(this.vertexToMatrixBuffer, 0, vertexToObjectID);
+
+			// color buffer
+			if (!this.colorBuffer || this.colorBuffer.size !== colors.byteLength) {
+				if (this.colorBuffer) {
+					this.colorBuffer.destroy();
+				}
+
+				this.colorBuffer = device.createBuffer({
+					label: 'Color Buffer for Lines',
+					size: colors.byteLength,
+					usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+				});
+			}
+
+			device.queue.writeBuffer(this.colorBuffer, 0, colors)
 		}
 
 
@@ -213,6 +243,7 @@ export class LinePass {
 		passEncoder.setBindGroup(0, this.uniformBindGroup);
 		passEncoder.setVertexBuffer(0, this.vertexBuffer);
 		passEncoder.setVertexBuffer(1, this.vertexToMatrixBuffer);
+		passEncoder.setVertexBuffer(2, this.colorBuffer);
 		passEncoder.draw(this.vertexCount);
 		passEncoder.end();
 

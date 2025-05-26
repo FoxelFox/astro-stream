@@ -12,12 +12,13 @@ export enum Topic {
 	PlayerDisconnected,
 	CanvasResize,
 	ClientControlEvent,
-	PlayerControlEvent
+	PlayerControlEvent,
+	BulletSpawn
 }
 
 export interface TopicDataMap {
 	[Topic.Sync]: Type
-	[Topic.Update]: { players: Float32Array[] }
+	[Topic.Update]: { players: Float32Array[], astroids: Float32Array[], bullets: Float32Array[]} // TODO refactor this!
 	[Topic.NodeDestroy]: Node
 	[Topic.NodeCreate]: Node
 	[Topic.ReceiveUserId]: {userid: string}
@@ -26,6 +27,7 @@ export interface TopicDataMap {
 	[Topic.CanvasResize]: { width: number; height: number }
 	[Topic.ClientControlEvent]: Control
 	[Topic.PlayerControlEvent]: {userid: string, control: Control}
+	[Topic.BulletSpawn]: {transform: Float32Array}
 }
 
 

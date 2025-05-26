@@ -5,7 +5,7 @@ export class Node {
 
 	eventSystem = inject(EventSystem);
 	parent?: Node;
-	children: Array<Node> = [];
+	private children: Array<Node> = [];
 
 	constructor() {
 		this.eventSystem.publish(Topic.NodeCreate, this);
@@ -22,6 +22,9 @@ export class Node {
 
 	removeChild(node: Node) {
 		const i = this.children.indexOf(node);
+		if (i === -1) {
+			return // already removed
+		}
 		this.children[i].destroy();
 		this.children.splice(i, 1);
 	}
