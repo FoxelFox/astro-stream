@@ -13,7 +13,6 @@ export class Astroid extends Node2D {
 		super();
 
 
-
 		if (isServer) {
 
 			const w = Math.random() * 5 + 0.1;
@@ -31,8 +30,8 @@ export class Astroid extends Node2D {
 			this.body = world.createBody({
 				type: "dynamic",
 				position: {
-					x: (Math.random() -0.5) * 80 ,
-					y: (Math.random() -0.5) * 80
+					x: (Math.random() - 0.5) * 80,
+					y: (Math.random() - 0.5) * 80
 				},
 				allowSleep: false
 			});
@@ -42,35 +41,35 @@ export class Astroid extends Node2D {
 				restitution: 0.6,
 				shape: new Polygon([
 					{x: 0.0, y: h},
-					{x: -w,y: -h},
+					{x: -w, y: -h},
 					{x: w, y: -h}
 				])
 			})
 
-			polys.color = new Float32Array([1.0,1.0,1.0,1.0]);
+			polys.color = new Float32Array([1.0, 1.0, 1.0, 1.0]);
 
 			this.addChild(polys);
 		}
-
 	}
 
 	update() {
 		super.update();
 		if (isServer) {
-			this.transform = mat4.setTranslation(this.transform, vec3.fromValues(this.body.getTransform().p.x ,this.body.getTransform().p.y))
+			this.transform = mat4.setTranslation(this.transform, vec3.fromValues(this.body.getTransform().p.x, this.body.getTransform().p.y))
 			const a = this.body.getAngle()
 
-			this.transform[0] =  Math.cos(-a);
+			// (mat4.rotate?)
+			this.transform[0] = Math.cos(-a);
 			this.transform[1] = -Math.sin(-a);
-			this.transform[4] =  Math.sin(-a);
-			this.transform[5] =  Math.cos(-a);
+			this.transform[4] = Math.sin(-a);
+			this.transform[5] = Math.cos(-a);
 		}
 	}
 
 	destroy() {
 		super.destroy();
-		world.destroyBody(this.body);
+		world.queueUpdate(() => {
+			world.destroyBody(this.body);
+		})
 	}
-
-
 }

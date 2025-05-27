@@ -1,8 +1,8 @@
 import {Line} from "../../../shared/node/2D/line";
-import {context, device, GPU} from "../gpu";
-import {Mat3, Mat4, mat4} from "wgpu-matrix";
-import vertexShader from "./line.vertex.wgsl" with { type: "text" };
-import fragmentShader from "./line.fragment.wgsl" with { type: "text" };
+import {context, device} from "../gpu";
+import {Mat4} from "wgpu-matrix";
+import vertexShader from "./line.vertex.wgsl" with {type: "text"};
+import fragmentShader from "./line.fragment.wgsl" with {type: "text"};
 import {Camera} from "../../../shared/node/2D/camera";
 
 export class LinePass {
@@ -30,9 +30,6 @@ export class LinePass {
 			this.updateBuffers(camera.cam);
 		}
 
-
-
-
 		this.render(camera);
 	}
 
@@ -41,7 +38,6 @@ export class LinePass {
 			label: 'Line List Render Pipeline',
 			layout: 'auto',
 			vertex: {
-				//entryPoint: 'main',
 				module: device.createShaderModule({
 					label: 'Line List Vertex Shader',
 					code: vertexShader
@@ -70,7 +66,6 @@ export class LinePass {
 				}]
 			},
 			fragment: {
-				//entryPoint: 'main',
 				module: device.createShaderModule({
 					label: 'Line List Fragment Shader',
 					code: fragmentShader,
@@ -98,8 +93,6 @@ export class LinePass {
 				count: 4,
 			}
 		});
-
-
 	}
 
 	updateBuffers(camera: Mat4, fullUpdate?: boolean) {
@@ -126,7 +119,7 @@ export class LinePass {
 					colors.set(line.color, cOffset);
 					cOffset += line.color.length;
 				}
-				vertexToObjectID.fill(i, vOffset /2, vOffset /2 + line.vertices.length /2);
+				vertexToObjectID.fill(i, vOffset / 2, vOffset / 2 + line.vertices.length / 2);
 			}
 
 			vOffset += line.vertices.length;
@@ -217,28 +210,24 @@ export class LinePass {
 				}]
 			});
 		}
-
-
 	}
 
 	render(camera: Camera) {
 
-		const commandEncoder = device.createCommandEncoder({ label: 'Command Encoder' });
+		const commandEncoder = device.createCommandEncoder({label: 'Command Encoder'});
 		const textureView = context.getCurrentTexture().createView();
 
 		const renderPassDescriptor: GPURenderPassDescriptor = {
 			colorAttachments: [{
 				view: camera.multisampleTexture.createView(),
-				clearValue: { r: 0.05, g: 0.05, b: 0.1, a: 1.0 },
+				clearValue: {r: 0.05, g: 0.05, b: 0.1, a: 1.0},
 				loadOp: 'clear',
 				storeOp: 'store',
 				resolveTarget: textureView
 			}],
 		};
 
-
 		const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-
 		passEncoder.setPipeline(this.pipeline);
 		passEncoder.setBindGroup(0, this.uniformBindGroup);
 		passEncoder.setVertexBuffer(0, this.vertexBuffer);

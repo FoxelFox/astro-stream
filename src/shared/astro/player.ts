@@ -19,40 +19,40 @@ export class Player extends Node2D {
 
 	constructor() {
 		super();
-			const w = 0.75;
-			const h = 1;
-			const polys = new Line();
-			polys.vertices = new Float32Array([
-				0.0, h,
-				w, -h,
-				w, -h,
-				-w, -h,
-				-w, -h,
-				0.0, h,
-			]);
+		const w = 0.75;
+		const h = 1;
+		const polys = new Line();
+		polys.vertices = new Float32Array([
+			0.0, h,
+			w, -h,
+			w, -h,
+			-w, -h,
+			-w, -h,
+			0.0, h,
+		]);
 
-			if (isServer) {
-				this.body = world.createBody({
-					type: "dynamic",
-					position: {x: 0, y: 0},
-					allowSleep: false,
-					angularDamping: 0.001,
-					linearDamping: 0.0005
-				});
+		if (isServer) {
+			this.body = world.createBody({
+				type: "dynamic",
+				position: {x: 0, y: 0},
+				allowSleep: false,
+				angularDamping: 0.001,
+				linearDamping: 0.0005
+			});
 
-				this.body.createFixture({
-					density: 1,
-					restitution: 0.6,
-					shape: new Polygon([
-						{x: 0.0, y: h},
-						{x: -w,y: -h},
-						{x: w, y: -h}
-					])
-				})
-			}
-			polys.color = new Float32Array([1.0,1.0,0.0,1.0]);
+			this.body.createFixture({
+				density: 1,
+				restitution: 0.6,
+				shape: new Polygon([
+					{x: 0.0, y: h},
+					{x: -w, y: -h},
+					{x: w, y: -h}
+				])
+			})
+		}
+		polys.color = new Float32Array([1.0, 1.0, 0.0, 1.0]);
 
-			this.addChild(polys);
+		this.addChild(polys);
 
 
 		this.eventSystem.listen(Topic.PlayerControlEvent, data => {
@@ -65,13 +65,13 @@ export class Player extends Node2D {
 	update() {
 		super.update();
 		if (isServer) {
-			this.transform = mat4.setTranslation(this.transform, vec3.fromValues(this.body.getTransform().p.x ,this.body.getTransform().p.y))
+			this.transform = mat4.setTranslation(this.transform, vec3.fromValues(this.body.getTransform().p.x, this.body.getTransform().p.y))
 			const a = this.body.getAngle()
 
-			this.transform[0] =  Math.cos(-a);
+			this.transform[0] = Math.cos(-a);
 			this.transform[1] = -Math.sin(-a);
-			this.transform[4] =  Math.sin(-a);
-			this.transform[5] =  Math.cos(-a);
+			this.transform[4] = Math.sin(-a);
+			this.transform[5] = Math.cos(-a);
 
 			const f = 0.00005;
 
@@ -80,7 +80,7 @@ export class Player extends Node2D {
 				const cosTheta = Math.cos(rad)
 				const sinTheta = Math.sin(rad)
 
-				this.body.applyForceToCenter({x:-f*sinTheta, y: f*cosTheta}, true);
+				this.body.applyForceToCenter({x: -f * sinTheta, y: f * cosTheta}, true);
 			}
 
 			if (this.keys.backward) {
@@ -99,19 +99,19 @@ export class Player extends Node2D {
 				const bullet = new Bullet();
 				bullet.transform = mat4.copy(this.transform);
 
-				// TODO fix this
+				// TODO fix this (mat4.rotate?)
 				const a = this.body.getAngle()
-				bullet.transform[0] =  Math.cos(-a);
+				bullet.transform[0] = Math.cos(-a);
 				bullet.transform[1] = -Math.sin(-a);
-				bullet.transform[4] =  Math.sin(-a);
-				bullet.transform[5] =  Math.cos(-a);
+				bullet.transform[4] = Math.sin(-a);
+				bullet.transform[5] = Math.cos(-a);
 
 				const rad = this.body.getAngle();
 				const cosTheta = Math.cos(rad)
 				const sinTheta = Math.sin(rad)
 
 				const spawn = this.body.getPosition();
-				spawn.x -=sinTheta * 3;
+				spawn.x -= sinTheta * 3;
 				spawn.y += cosTheta * 3;
 				bullet.body.setPosition(this.body.getPosition());
 				bullet.body.setLinearVelocity(this.body.getLinearVelocity());
@@ -134,7 +134,10 @@ export class Player extends Node2D {
 
 	destroy() {
 		super.destroy();
-		world.destroyBody(this.body);
+		world.queueUpdate(() => {
+			world.destroyBody(this.body);
+		})
+
 	}
 
 
