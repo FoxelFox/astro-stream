@@ -4,21 +4,19 @@ import {mat4, vec3} from "wgpu-matrix";
 import {isServer, world} from "./astro";
 import {Body, Math, Polygon} from "planck";
 
-
-export class Astroid extends Node2D {
+export class Astroid extends Line {
 
 	body: Body
 
 	constructor() {
 		super();
 
-
 		if (isServer) {
 
 			const w = Math.random() * 5 + 0.1;
 			const h = Math.random() * 5 + 0.1;
-			const polys = new Line();
-			polys.vertices = new Float32Array([
+
+			this.vertices = new Float32Array([
 				0.0, h,
 				w, -h,
 				w, -h,
@@ -46,9 +44,7 @@ export class Astroid extends Node2D {
 				])
 			})
 
-			polys.color = new Float32Array([1.0, 1.0, 1.0, 1.0]);
-
-			this.addChild(polys);
+			this.color = new Float32Array([1.0, 1.0, 1.0, 1.0]);
 		}
 	}
 

@@ -5,7 +5,7 @@ import {isServer, world} from "./astro";
 import {Body, Math, Polygon} from "planck";
 
 
-export class Bullet extends Node2D {
+export class Bullet extends Line {
 
 	body: Body
 
@@ -14,8 +14,8 @@ export class Bullet extends Node2D {
 
 		const w = 0.5;
 		const h = 0.5;
-		const polys = new Line();
-		polys.vertices = new Float32Array([
+
+		this.vertices = new Float32Array([
 			0.0, h,
 			w, -h,
 			w, -h,
@@ -49,9 +49,7 @@ export class Bullet extends Node2D {
 			this.body.setUserData(this);
 		}
 
-		polys.color = new Float32Array([1.0, 0.0, 0.0, 1.0]);
-
-		this.addChild(polys);
+		this.color = new Float32Array([1.0, 0.0, 0.0, 1.0]);
 	}
 
 	update() {
@@ -72,8 +70,6 @@ export class Bullet extends Node2D {
 		super.destroy();
 		world.queueUpdate(() => {
 			world.destroyBody(this.body);
-		})
+		});
 	}
-
-
 }

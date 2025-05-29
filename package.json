@@ -5,6 +5,7 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"client": "bun build src/client/index.html --outdir=dist --sourcemap --chunk-naming [name].[ext]",
+		"client-watch": "bun build src/client/index.html --outdir=dist --sourcemap --chunk-naming [name].[ext] --watch",
 		"server": "bun src/server/main.ts"
 	},
 	"devDependencies": {

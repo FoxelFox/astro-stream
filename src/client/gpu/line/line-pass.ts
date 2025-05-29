@@ -244,8 +244,11 @@ export class LinePass {
 		this.linesNeedUpdate = true;
 	}
 
-	remove(node: Line) {
-		const i = this.lines.indexOf(node);
+	remove(id: number) {
+		const i = this.lines.findIndex(c => c.id === id);
+		if (i === -1) {
+			return;
+		}
 		this.lines.splice(i, 1);
 		this.linesNeedUpdate = true;
 	}

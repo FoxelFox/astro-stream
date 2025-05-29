@@ -17,15 +17,16 @@ export let canvas: HTMLCanvasElement
 	constructor() {
 		this.eventSystem.listen(Topic.NodeCreate, node => {
 			switch (node.constructor) {
-				case Line: this.lines.add(node as Line); return;
 				case Camera: this.camera = node as Camera;
+			}
+
+			if (node instanceof Line) {
+				this.lines.add(node as Line);
 			}
 		});
 
-		this.eventSystem.listen(Topic.NodeDestroy, node => {
-			switch (node.constructor) {
-				case Line: this.lines.remove(node as Line); return;
-			}
+		this.eventSystem.listen(Topic.NodeDestroy, data => {
+			this.lines.remove(data.id);
 		});
 
 	}

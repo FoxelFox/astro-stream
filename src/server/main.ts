@@ -133,7 +133,13 @@ backend.main().then(() => {
 
 	const eventSystem = inject(EventSystem);
 
-	const networkEvents = [Topic.Update, Topic.PlayerConnected, Topic.PlayerDisconnected, Topic.BulletSpawn];
+	const networkEvents = [
+		Topic.Update,
+		Topic.PlayerConnected,
+		Topic.PlayerDisconnected,
+		Topic.BulletSpawn,
+		Topic.NodeDestroy
+	];
 	for (const topic of networkEvents) {
 		eventSystem.listen(topic, (data) => {
 			webSocketServer.publish('update', JSON.stringify({topic, message: data}),true);

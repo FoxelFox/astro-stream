@@ -8,21 +8,18 @@ import {Body, Math, Polygon} from "planck";
 import {Bullet} from "./bullet";
 
 
-export class Player extends Node2D {
+export class Player extends Line {
 
 	keys: Control = {}
 	userid: string
 	body: Body
 
-	fireRate = 20;
-
-
 	constructor() {
 		super();
 		const w = 0.75;
 		const h = 1;
-		const polys = new Line();
-		polys.vertices = new Float32Array([
+
+		this.vertices = new Float32Array([
 			0.0, h,
 			w, -h,
 			w, -h,
@@ -50,9 +47,7 @@ export class Player extends Node2D {
 				])
 			})
 		}
-		polys.color = new Float32Array([1.0, 1.0, 0.0, 1.0]);
-
-		this.addChild(polys);
+		this.color = new Float32Array([1.0, 1.0, 0.0, 1.0]);
 
 
 		this.eventSystem.listen(Topic.PlayerControlEvent, data => {
@@ -117,12 +112,10 @@ export class Player extends Node2D {
 				bullet.body.setLinearVelocity(this.body.getLinearVelocity());
 				bullet.body.applyLinearImpulse({x: -sinTheta, y: cosTheta}, bullet.body.getPosition(), true);
 
-				this.eventSystem.publish(Topic.BulletSpawn, {transform: bullet.transform});
-
+				this.eventSystem.publish(Topic.BulletSpawn, {id: bullet.id,transform: bullet.transform});
 
 				this.parent.addChild(bullet);
 			}
-
 		}
 	}
 
@@ -136,9 +129,6 @@ export class Player extends Node2D {
 		super.destroy();
 		world.queueUpdate(() => {
 			world.destroyBody(this.body);
-		})
-
+		});
 	}
-
-
 }

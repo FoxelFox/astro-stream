@@ -19,7 +19,7 @@ export enum Topic {
 export interface TopicDataMap {
 	[Topic.Sync]: Type
 	[Topic.Update]: { players: Float32Array[], astroids: Float32Array[], bullets: Float32Array[]} // TODO refactor this!
-	[Topic.NodeDestroy]: Node
+	[Topic.NodeDestroy]: {id: number, type: string}
 	[Topic.NodeCreate]: Node
 	[Topic.ReceiveUserId]: {userid: string}
 	[Topic.PlayerConnected]: string
@@ -27,7 +27,7 @@ export interface TopicDataMap {
 	[Topic.CanvasResize]: { width: number; height: number }
 	[Topic.ClientControlEvent]: Control
 	[Topic.PlayerControlEvent]: {userid: string, control: Control}
-	[Topic.BulletSpawn]: {transform: Float32Array}
+	[Topic.BulletSpawn]: {id: number, transform: Float32Array}
 }
 
 

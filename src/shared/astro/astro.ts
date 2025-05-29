@@ -18,10 +18,8 @@ export let world = new World({
 Settings.velocityThreshold = 0;
 
 export class Astro extends Node {
-	// Game Scene
 
 	camera: Camera;
-
 
 	constructor() {
 		super();
@@ -54,10 +52,15 @@ export class Astro extends Node {
 
 			this.eventSystem.listen(Topic.BulletSpawn, data => {
 				const bullet = new Bullet();
+				bullet.id = data.id;
 				bullet.transform = new Float32Array(data.transform);
 				this.addChild(bullet);
 			});
 		}
+
+		this.eventSystem.listen(Topic.NodeDestroy, data => {
+			this.removeChildByID(data.id);
+		});
 
 		this.eventSystem.listen(Topic.PlayerConnected, userid => {
 			console.log("Player Connected", userid);
@@ -69,7 +72,9 @@ export class Astro extends Node {
 
 		this.eventSystem.listen(Topic.PlayerDisconnected, userid => {
 			console.log("Player Disconnected", userid);
-			this.removeChild(this.getChildren(Player).find(c => c.userid === userid));
+			const player = this.getChildren(Player).find(c => c.userid === userid);
+			this.removeChild(player);
+			player.destroy();
 		});
 	}
 
@@ -114,6 +119,46 @@ export class Astro extends Node {
 			shape: new Edge({x: 0, y: -50}, {x: 0, y: 50})
 		});
 
+		let platformBottom2 = world.createBody({
+			type: "static",
+			position: {x: 0, y: -100},
+			angle: 0
+		});
+
+		platformBottom2.createFixture({
+			shape: new Edge({x: -100, y: 0}, {x: +100, y: 0}),
+		});
+
+		let platformTop2 = world.createBody({
+			type: "static",
+			position: {x: 0, y: 100},
+			angle: 0
+		});
+
+		platformTop2.createFixture({
+			shape: new Edge({x: -100, y: 0}, {x: +100, y: 0}),
+		});
+
+		let platformLeft2 = world.createBody({
+			type: "static",
+			position: {x: -100, y: 0},
+			angle: 0
+		});
+
+		platformLeft2.createFixture({
+			shape: new Edge({x: 0, y: -100}, {x: 0, y: 100}),
+		});
+
+		let platformRight2 = world.createBody({
+			type: "static",
+			position: {x: 100, y: 0},
+			angle: 0
+		});
+
+		platformRight2.createFixture({
+			shape: new Edge({x: 0, y: -100}, {x: 0, y: 100})
+		});
+
 
 		this.generateAstroids();
 
@@ -122,10 +167,10 @@ export class Astro extends Node {
 			const b = contact.getFixtureB().getBody().getUserData();
 
 			if (a instanceof Bullet) {
-				this.removeChild(a);
+				a.destroy();
 			}
 			if (b instanceof Bullet) {
-				this.removeChild(b);
+				b.destroy();
 			}
 		});
 	}
@@ -134,6 +179,7 @@ export class Astro extends Node {
 		for (let i = 0; i < 100; ++i) {
 			this.addChild(new Astroid());
 		}
+
 	}
 
 	update() {

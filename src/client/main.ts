@@ -10,7 +10,6 @@ let game;
 const eventSystem = inject(EventSystem);
 eventSystem.listen(Topic.Sync, async data => {
 	game = deserialize(data)
-	game.init();
 
 	const networkEvents = [Topic.ClientControlEvent];
 	for (const topic of networkEvents) {
@@ -19,8 +18,6 @@ eventSystem.listen(Topic.Sync, async data => {
 		});
 	}
 });
-
-
 
 const gpu = new GPU();
 await gpu.init();
@@ -36,14 +33,6 @@ socket.onmessage = (ev) => {
 	const data = JSON.parse(ev.data);
 	eventSystem.publish(data.topic, data.message);
 }
-
-
-
-
-
-
-
-
 
 function loop() {
 	gpu.update();
