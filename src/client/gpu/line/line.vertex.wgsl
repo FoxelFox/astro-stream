@@ -1,4 +1,9 @@
-@binding(0) @group(0) var <uniform> camera: mat4x4<f32>;
+struct VP {
+	projection: mat4x4<f32>,
+	view: mat4x4<f32>,
+}
+
+@binding(0) @group(0) var <uniform> vp: VP;
 @binding(1) @group(0) var <storage> matrices: array<mat4x4<f32>>;
 
 struct VertexOutput {
@@ -14,10 +19,10 @@ fn main(
 ) -> VertexOutput {
 
 	let m = matrices[vertex_matrix_id];
-	let _c = camera;
+	let _c = vp;
 
 	var output : VertexOutput;
-	output.position = camera * m * vec4<f32>(in_vertex_position, 0.0, 1.0);
+	output.position =  vp.projection  * m * vec4<f32>(in_vertex_position, 0.0, 1.0);
 	output.color = in_vertex_color;
 
 	return output;

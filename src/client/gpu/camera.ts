@@ -2,16 +2,19 @@ import {Mat4, mat4} from "wgpu-matrix";
 import {inject} from "../../shared/injector";
 import {EventSystem, Topic} from "../../shared/event-system";
 import {canvas, context, device} from "./gpu";
+import {Node2D} from "../../shared/node/2D/node-2d";
+import {Math} from "planck";
 
 
 export class Camera {
-	cam: Mat4 = mat4.ortho(-64, 64, -64, 64, 0,1);
+	projection: Mat4 = mat4.ortho(-64, 64, -64, 64, 0,1);
+	view: Mat4 = mat4.identity();
 
 
 	eventSystem = inject(EventSystem);
 	multisampleTexture: GPUTexture;
 
-	constructor() {
+	constructor(public target: Node2D) {
 
 		this.eventSystem.listen(Topic.CanvasResize, params => {
 			this.createMatrix(params);
@@ -26,7 +29,7 @@ export class Camera {
 	createMatrix(params: {width: number, height: number}) {
 		const ar = params.width / params.height;
 		const z = 64;
-		this.cam = mat4.ortho(-ar * z, +ar * z, -1 * z, 1 * z, 0, 1);
+		this.projection = mat4.ortho(-ar * z, +ar * z, -1 * z, 1 * z, 0, 1);
 
 		const canvasTexture = context.getCurrentTexture();
 
@@ -47,8 +50,17 @@ export class Camera {
 				size: [canvasTexture.width, canvasTexture.height],
 				sampleCount: 4,
 			});
-
-			console.log(canvasTexture.width);
 		}
+	}
+
+	getViewProjection(): Float32Array {
+		if (this.target) {
+
+			const target = mat4.setTranslation(mat4.identity(), mat4.getTranslation(this.target.transform));
+			return mat4.multiply(this.projection, mat4.inverse(target));
+		} else {
+			return this.projection;
+		}
+
 	}
 }

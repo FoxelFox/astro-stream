@@ -70,88 +70,91 @@ export class Astro extends Node {
 	}
 
 	init () {
+
+		const size = 200;
+
 		let platformBottom = world.createBody({
 			type: "static",
-			position: {x: 0, y: -50},
+			position: {x: 0, y: -size},
 			angle: 0
 		});
 
 		platformBottom.createFixture({
-			shape: new Edge({x: -50, y: 0}, {x: +50, y: 0}),
+			shape: new Edge({x: -size, y: 0}, {x: +size, y: 0}),
 		});
 
 		let platformTop = world.createBody({
 			type: "static",
-			position: {x: 0, y: 50},
+			position: {x: 0, y: size},
 			angle: 0
 		});
 
 		platformTop.createFixture({
-			shape: new Edge({x: -50, y: 0}, {x: +50, y: 0}),
+			shape: new Edge({x: -size, y: 0}, {x: +size, y: 0}),
 		});
 
 		let platformLeft = world.createBody({
 			type: "static",
-			position: {x: -50, y: 0},
+			position: {x: -size, y: 0},
 			angle: 0
 		});
 
 		platformLeft.createFixture({
-			shape: new Edge({x: 0, y: -50}, {x: 0, y: 50}),
+			shape: new Edge({x: 0, y: -size}, {x: 0, y: size}),
 		});
 
 		let platformRight = world.createBody({
 			type: "static",
-			position: {x: 50, y: 0},
+			position: {x: size, y: 0},
 			angle: 0
 		});
 
 		platformRight.createFixture({
-			shape: new Edge({x: 0, y: -50}, {x: 0, y: 50})
+			shape: new Edge({x: 0, y: -size}, {x: 0, y: size})
 		});
 
 		let platformBottom2 = world.createBody({
 			type: "static",
-			position: {x: 0, y: -100},
+			position: {x: 0, y: -size*2},
 			angle: 0
 		});
 
 		platformBottom2.createFixture({
-			shape: new Edge({x: -100, y: 0}, {x: +100, y: 0}),
+			shape: new Edge({x: -size*2, y: 0}, {x: +size*2, y: 0}),
 		});
 
 		let platformTop2 = world.createBody({
 			type: "static",
-			position: {x: 0, y: 100},
+			position: {x: 0, y: size*2},
 			angle: 0
 		});
 
 		platformTop2.createFixture({
-			shape: new Edge({x: -100, y: 0}, {x: +100, y: 0}),
+			shape: new Edge({x: -size*2, y: 0}, {x: +size*2, y: 0}),
 		});
 
 		let platformLeft2 = world.createBody({
 			type: "static",
-			position: {x: -100, y: 0},
+			position: {x: -size*2, y: 0},
 			angle: 0
 		});
 
 		platformLeft2.createFixture({
-			shape: new Edge({x: 0, y: -100}, {x: 0, y: 100}),
+			shape: new Edge({x: 0, y: -size*2}, {x: 0, y: size*2}),
 		});
 
 		let platformRight2 = world.createBody({
 			type: "static",
-			position: {x: 100, y: 0},
+			position: {x: size*2, y: 0},
 			angle: 0
 		});
 
 		platformRight2.createFixture({
-			shape: new Edge({x: 0, y: -100}, {x: 0, y: 100})
+			shape: new Edge({x: 0, y: -size*2}, {x: 0, y: size*2})
 		});
 
 
-		this.generateAstroids();
+		this.generateAstroids(size);
 
 		world.on('begin-contact', contact => {
 			const a = contact.getFixtureA().getBody().getUserData();
@@ -166,8 +169,8 @@ export class Astro extends Node {
 		});
 	}
 
-	generateAstroids() {
-		for (let i = 0; i < 100; ++i) {
+	generateAstroids(size: number) {
+		for (let i = 0; i < size*2; ++i) {
 			this.addChild(new Astroid());
 		}
 

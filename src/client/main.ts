@@ -9,10 +9,14 @@ const url = location.hostname === 'localhost' ? 'ws://localhost:3001' : `wss://w
 let game;
 
 const eventSystem = inject(EventSystem);
+const gpu = new GPU();
+await gpu.init();
+
 eventSystem.listen(Topic.Sync, async data => {
 
 	game = deserialize(data.game)
 	Node.idCounter = data.idCounter;
+	gpu.astro = game;
 
 	const networkEvents = [Topic.ClientControlEvent];
 	for (const topic of networkEvents) {
@@ -22,8 +26,6 @@ eventSystem.listen(Topic.Sync, async data => {
 	}
 });
 
-const gpu = new GPU();
-await gpu.init();
 const input = new Input();
 const socket = new WebSocket(url);
 

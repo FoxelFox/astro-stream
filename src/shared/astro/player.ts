@@ -6,6 +6,7 @@ import {mat4, vec3} from "wgpu-matrix";
 import {isServer, world} from "./astro";
 import {Body, Math, Polygon} from "planck";
 import {Bullet} from "./bullet";
+import {Node} from "../node/node";
 
 
 export class Player extends Line {
@@ -122,6 +123,12 @@ export class Player extends Line {
 	serialize(): any {
 		const o = super.serialize();
 		o.userid = this.userid;
+		return o;
+	}
+
+	deserialize(json: any): Node {
+		const o = super.deserialize(json) as Player;
+		o.userid = json.userid;
 		return o;
 	}
 

@@ -4,22 +4,24 @@ import {Line} from "../../shared/node/2D/line";
 import {LinePass} from "./line/line-pass";
 import {Camera} from "./camera";
 import {Player} from "../../shared/astro/player";
+import {Astro} from "../../shared/astro/astro";
 
 export let device: GPUDevice
 export let context: GPUCanvasContext
 export let canvas: HTMLCanvasElement
 
-	export class GPU {
+export class GPU {
 
 	eventSystem = inject(EventSystem);
 	lines: LinePass = new LinePass();
 	camera: Camera;
+	astro: Astro;
 
 	constructor() {
 
 		this.eventSystem.listen(Topic.ReceiveUserId, data => {
-			//const myPlayer = this.getChildren(Player).find(p => p.userid == data.userid);
-			this.camera = new Camera();
+			const myPlayer = this.astro.getChildren(Player).find(p => p.userid == data.userid);
+			this.camera = new Camera(myPlayer);
 		});
 
 		this.eventSystem.listen(Topic.NodeCreate, node => {
@@ -78,6 +80,5 @@ export let canvas: HTMLCanvasElement
 			this.lines.update(this.camera);
 		}
 	}
-
 
 }

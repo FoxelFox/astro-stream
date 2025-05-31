@@ -1,6 +1,6 @@
 import {Line} from "../../../shared/node/2D/line";
 import {context, device} from "../gpu";
-import {Mat4} from "wgpu-matrix";
+import {mat4, Mat4} from "wgpu-matrix";
 import vertexShader from "./line.vertex.wgsl" with {type: "text"};
 import fragmentShader from "./line.fragment.wgsl" with {type: "text"};
 import {Camera} from "../camera";
@@ -23,10 +23,10 @@ export class LinePass {
 
 	update(camera: Camera) {
 		if (this.linesNeedUpdate) {
-			this.updateBuffers(camera.cam, true);
+			this.updateBuffers(camera, true);
 			this.linesNeedUpdate = false;
 		} else {
-			this.updateBuffers(camera.cam);
+			this.updateBuffers(camera);
 		}
 
 		this.render(camera);
@@ -94,7 +94,7 @@ export class LinePass {
 		});
 	}
 
-	updateBuffers(camera: Mat4, fullUpdate?: boolean) {
+	updateBuffers(camera: Camera, fullUpdate?: boolean) {
 		this.vertexCount = 0;
 		for (const line of this.lines) {
 			this.vertexCount += line.vertices.length / 2;
@@ -173,14 +173,19 @@ export class LinePass {
 
 
 		let recreateUniform = false;
+		const vp = new Float32Array(32);
+		//vp.set(camera.projection, 0);
+		vp.set(camera.getViewProjection(), 0);
+
+		vp.set(mat4.inverse(camera.target.transform), 16);
 		if (!this.cameraUniformBuffer) {
 			this.cameraUniformBuffer = device.createBuffer({
-				size: 16 * Float32Array.BYTES_PER_ELEMENT,
+				size: 32 * Float32Array.BYTES_PER_ELEMENT,
 				usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
 			});
 			recreateUniform = true;
 		}
-		device.queue.writeBuffer(this.cameraUniformBuffer, 0, camera);
+		device.queue.writeBuffer(this.cameraUniformBuffer, 0, vp);
 
 		// vertexToObjectID buffer
 		if (!this.matrixBuffer || this.matrixBuffer.size !== matrices.byteLength) {

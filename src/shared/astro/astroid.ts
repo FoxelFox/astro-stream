@@ -28,14 +28,15 @@ export class Astroid extends Line {
 			this.body = world.createBody({
 				type: "dynamic",
 				position: {
-					x: (Math.random() - 0.5) * 80,
-					y: (Math.random() - 0.5) * 80
+					x: (Math.random() - 0.5) * 350,
+					y: (Math.random() - 0.5) * 350
 				},
+				angle: Math.PI * Math.random(),
 				allowSleep: false
 			});
 
 			this.body.createFixture({
-				density: 2,
+				density: 1,
 				restitution: 0.6,
 				shape: new Polygon([
 					{x: 0.0, y: h},
