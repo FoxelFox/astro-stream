@@ -3,6 +3,7 @@ import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";
 import * as path from "node:path";
 import {Astro} from "../shared/astro/astro";
+import {Node} from "../shared/node/node";
 
 const publicDir = path.resolve(import.meta.dir, '../../dist');
 let idCounter = 0;
@@ -19,7 +20,13 @@ class Backend {
 		const userid = (++idCounter).toString();
 		this.connections[userid] = ws;
 		this.eventSystem.publish(Topic.PlayerConnected, userid);
-		ws.send(JSON.stringify({topic: Topic.Sync, message: this.game.serialize()}));
+		ws.send(JSON.stringify({
+			topic: Topic.Sync,
+			message: {
+				idCounter: Node.idCounter,
+				game: this.game.serialize()
+			}
+		}));
 		ws.send(JSON.stringify({topic: Topic.ReceiveUserId, message: {userid: userid}}));
 		return userid;
 	}

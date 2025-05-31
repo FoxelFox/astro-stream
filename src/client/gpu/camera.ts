@@ -1,11 +1,10 @@
-import {Node2D} from "./node-2d";
 import {Mat4, mat4} from "wgpu-matrix";
-import {inject} from "../../injector";
-import {EventSystem, Topic} from "../../event-system";
-import {canvas, context, device} from "../../../client/gpu/gpu";
+import {inject} from "../../shared/injector";
+import {EventSystem, Topic} from "../../shared/event-system";
+import {canvas, context, device} from "./gpu";
 
 
-export class Camera extends Node2D {
+export class Camera {
 	cam: Mat4 = mat4.ortho(-64, 64, -64, 64, 0,1);
 
 
@@ -13,7 +12,6 @@ export class Camera extends Node2D {
 	multisampleTexture: GPUTexture;
 
 	constructor() {
-		super();
 
 		this.eventSystem.listen(Topic.CanvasResize, params => {
 			this.createMatrix(params);

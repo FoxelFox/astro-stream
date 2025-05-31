@@ -1,7 +1,6 @@
 import {Node} from "../node/node"
 import {Player} from "./player";
 import {Topic} from "../event-system";
-import {Camera} from "../node/2D/camera";
 import {mat4, vec3} from "wgpu-matrix";
 import {Edge, Settings, World} from "planck";
 import {Astroid} from "./astroid";
@@ -19,20 +18,12 @@ Settings.velocityThreshold = 0;
 
 export class Astro extends Node {
 
-	camera: Camera;
 
 	constructor() {
 		super();
 
 		if (isClient) {
-			this.eventSystem.listen(Topic.ReceiveUserId, data => {
-				const myPlayer = this.getChildren(Player).find(p => p.userid == data.userid);
-				this.camera = new Camera();
-				this.addChild(this.camera)
-			});
-
 			this.eventSystem.listen(Topic.Update, data => {
-
 				// TODO this can be generic
 				const players = this.getChildren(Player);
 				for (let i = 0; i < players.length; ++i) {
@@ -212,6 +203,7 @@ export class Astro extends Node {
 			for (const bullet of bullets) {
 				bulletTransforms.push(Array.from(bullet.transform));
 			}
+
 
 			this.eventSystem.publish(Topic.Update, {
 				players: playerTransforms,

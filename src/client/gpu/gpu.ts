@@ -2,7 +2,8 @@ import {EventSystem, Topic} from "../../shared/event-system";
 import {inject} from "../../shared/injector";
 import {Line} from "../../shared/node/2D/line";
 import {LinePass} from "./line/line-pass";
-import {Camera} from "../../shared/node/2D/camera";
+import {Camera} from "./camera";
+import {Player} from "../../shared/astro/player";
 
 export let device: GPUDevice
 export let context: GPUCanvasContext
@@ -15,11 +16,13 @@ export let canvas: HTMLCanvasElement
 	camera: Camera;
 
 	constructor() {
-		this.eventSystem.listen(Topic.NodeCreate, node => {
-			switch (node.constructor) {
-				case Camera: this.camera = node as Camera;
-			}
 
+		this.eventSystem.listen(Topic.ReceiveUserId, data => {
+			//const myPlayer = this.getChildren(Player).find(p => p.userid == data.userid);
+			this.camera = new Camera();
+		});
+
+		this.eventSystem.listen(Topic.NodeCreate, node => {
 			if (node instanceof Line) {
 				this.lines.add(node as Line);
 			}

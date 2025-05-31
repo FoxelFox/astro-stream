@@ -3,7 +3,7 @@ import {context, device} from "../gpu";
 import {Mat4} from "wgpu-matrix";
 import vertexShader from "./line.vertex.wgsl" with {type: "text"};
 import fragmentShader from "./line.fragment.wgsl" with {type: "text"};
-import {Camera} from "../../../shared/node/2D/camera";
+import {Camera} from "../camera";
 
 export class LinePass {
 
@@ -23,7 +23,6 @@ export class LinePass {
 
 	update(camera: Camera) {
 		if (this.linesNeedUpdate) {
-			console.log("Lines need Update")
 			this.updateBuffers(camera.cam, true);
 			this.linesNeedUpdate = false;
 		} else {

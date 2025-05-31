@@ -17,7 +17,7 @@ export enum Topic {
 }
 
 export interface TopicDataMap {
-	[Topic.Sync]: Type
+	[Topic.Sync]: {idCounter: number, game: Type}
 	[Topic.Update]: { players: Float32Array[], astroids: Float32Array[], bullets: Float32Array[]} // TODO refactor this!
 	[Topic.NodeDestroy]: {id: number, type: string}
 	[Topic.NodeCreate]: Node

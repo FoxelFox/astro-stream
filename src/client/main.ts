@@ -3,13 +3,16 @@ import {inject} from "../shared/injector";
 import {GPU} from "./gpu/gpu";
 import {Input} from "./input";
 import {deserialize} from "../shared/astro/deserialize";
+import {Node} from "../shared/node/node";
 
 const url = location.hostname === 'localhost' ? 'ws://localhost:3001' : `wss://ws.${location.hostname}`;
 let game;
 
 const eventSystem = inject(EventSystem);
 eventSystem.listen(Topic.Sync, async data => {
-	game = deserialize(data)
+
+	game = deserialize(data.game)
+	Node.idCounter = data.idCounter;
 
 	const networkEvents = [Topic.ClientControlEvent];
 	for (const topic of networkEvents) {
@@ -22,7 +25,6 @@ eventSystem.listen(Topic.Sync, async data => {
 const gpu = new GPU();
 await gpu.init();
 const input = new Input();
-
 const socket = new WebSocket(url);
 
 socket.onopen = (ev) => {
