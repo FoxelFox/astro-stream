@@ -28,6 +28,7 @@ export class Astro extends Node {
 				const players = this.getChildren(Player);
 				for (let i = 0; i < players.length; ++i) {
 					players[i].transform = new Float32Array(data.players[i]);
+					players[i].speed = data.playersSpeed[i];
 				}
 
 				const astroids = this.getChildren(Astroid);
@@ -188,6 +189,7 @@ export class Astro extends Node {
 		if (isServer) {
 			// TODO This can be generic
 			const playerTransforms = []
+			const playersSpeed = []
 			const astroidTransforms = []
 			const bulletTransforms = []
 
@@ -197,6 +199,7 @@ export class Astro extends Node {
 
 			for (const player of players) {
 				playerTransforms.push(Array.from(player.transform));
+				playersSpeed.push(player.speed);
 			}
 
 			for (const astroid of astroids) {
@@ -207,9 +210,9 @@ export class Astro extends Node {
 				bulletTransforms.push(Array.from(bullet.transform));
 			}
 
-
 			this.eventSystem.publish(Topic.Update, {
 				players: playerTransforms,
+				playersSpeed: playersSpeed,
 				astroids: astroidTransforms,
 				bullets: bulletTransforms
 			});

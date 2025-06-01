@@ -4,7 +4,7 @@ import {Control} from "../control";
 import {Topic} from "../event-system";
 import {mat4, vec3} from "wgpu-matrix";
 import {isServer, world} from "./astro";
-import {Body, Math, Polygon} from "planck";
+import {Body, Math, Polygon, Vec2} from "planck";
 import {Bullet} from "./bullet";
 import {Node} from "../node/node";
 
@@ -14,6 +14,7 @@ export class Player extends Line {
 	keys: Control = {}
 	userid: string
 	body: Body
+	speed: number
 
 	constructor() {
 		super();
@@ -117,18 +118,22 @@ export class Player extends Line {
 
 				this.parent.addChild(bullet);
 			}
+
+			this.speed = Vec2.lengthOf(this.body.getLinearVelocity());
 		}
 	}
 
 	serialize(): any {
 		const o = super.serialize();
 		o.userid = this.userid;
+		o.velocity = this.speed;
 		return o;
 	}
 
 	deserialize(json: any): Node {
 		const o = super.deserialize(json) as Player;
 		o.userid = json.userid;
+		o.speed = json.velocity;
 		return o;
 	}
 

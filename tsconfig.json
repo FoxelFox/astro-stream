@@ -3,6 +3,8 @@
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleResolution": "node",
-		"types": ["@webgpu/types", "planck/types"]
+		"types": ["@webgpu/types", "planck/types"],
+		"jsx": "react-jsx",
+		"jsxImportSource": "preact"
 	}
 }
