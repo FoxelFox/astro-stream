@@ -13,6 +13,7 @@
 	},
 	"private": true,
 	"dependencies": {
+		"@preact/signals": "^2.2.0",
 		"@types/bun": "^1.2.12",
 		"@webgpu/types": "^0.1.60",
 		"planck": "^1.3.0",
