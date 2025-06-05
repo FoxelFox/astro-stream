@@ -6,6 +6,7 @@
 	"scripts": {
 		"client": "bun build src/client/index.html --outdir=dist --sourcemap --chunk-naming [name].[ext]",
 		"client-watch": "bun build src/client/index.html --outdir=dist --sourcemap --chunk-naming [name].[ext] --watch",
+		"proto": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/shared/proto/generated --proto_path=./src/shared/proto ./src/shared/proto/*.proto",
 		"server": "bun src/server/main.ts"
 	},
 	"devDependencies": {
@@ -18,7 +19,9 @@
 		"@webgpu/types": "^0.1.60",
 		"planck": "^1.3.0",
 		"preact": "^10.26.8",
+		"protobufjs": "^7.5.3",
 		"tone": "^15.1.22",
+		"ts-proto": "^2.7.2",
 		"wgpu-matrix": "^3.4.0"
 	}
 }

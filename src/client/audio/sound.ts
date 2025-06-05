@@ -21,7 +21,7 @@ export class Sound {
 
 	constructor() {
 		// Master Volume, um Clipping zu vermeiden und globale Kontrolle zu haben
-		this.masterVolume = new Tone.Volume(-10).toDestination(); // Start bei -10dB
+		this.masterVolume = new Tone.Volume(-20).toDestination(); // Start bei -10dB
 
 		this.engineSound = new Tone.Oscillator({
 			type: 'sawtooth', // 'sawtooth' oder 'pwm' für einen aggressiveren Sound
@@ -41,8 +41,11 @@ export class Sound {
 			amplitude: 1      // Volle Modulationstiefe initial
 		});
 
+		let noise = new Tone.Noise({type: "brown"})
+
 		this.engineSound.start();
 		this.lfo.start();
+		noise.start();
 
 		// Audio-Graph verbinden
 		this.engineSound.chain(this.filter, this.masterVolume);
@@ -64,7 +67,7 @@ export class Sound {
 
 	update() {
 		const speed = (this.player && this.player.speed ? this.player.speed : 0.00001) *1000;
-		const intensity = 0.8; // 0-1
+		const intensity = 0.1; // 0-1
 
 
 
@@ -78,10 +81,10 @@ export class Sound {
 
 		// 3. Wobble-Tiefe & Charakter (LFO Min/Max für Filter-Cutoff)
 		const filterCenterFreq = this.scaleValue(speed, 0, 50, 100, 100 + intensity * 50 * speed);
-		const wobbleDepthAmount = this.scaleValue(intensity, 0, 1, 50, 100 + speed * 10);
+		const wobbleDepthAmount = this.scaleValue(intensity, 0, 1, 50, 50 + speed * 100);
 
 		let lfoMinFreq = Math.max(50, filterCenterFreq - wobbleDepthAmount / 2);
-		let lfoMaxFreq = Math.min(8000, filterCenterFreq + wobbleDepthAmount / 2);
+		let lfoMaxFreq = Math.min(16000, filterCenterFreq + wobbleDepthAmount / 2);
 
 		if (lfoMinFreq >= lfoMaxFreq) {
 			lfoMaxFreq = lfoMinFreq + 50;
@@ -90,7 +93,7 @@ export class Sound {
 		this.lfo.max = lfoMaxFreq;
 
 		// 4. Filter-Resonanz (Q)
-		const filterQValue = this.scaleValue(intensity, 0, 1, 1, 10 + speed * 0.5);
+		const filterQValue = this.scaleValue(intensity, 0, 1, 1, 10 + speed * 0.25);
 		this.filter.Q.rampTo(filterQValue, 0.05);
 
 

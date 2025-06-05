@@ -62,13 +62,7 @@ export class Player extends Line {
 	update() {
 		super.update();
 		if (isServer) {
-			this.transform = mat4.setTranslation(this.transform, vec3.fromValues(this.body.getTransform().p.x, this.body.getTransform().p.y))
-			const a = this.body.getAngle()
-
-			this.transform[0] = Math.cos(-a);
-			this.transform[1] = -Math.sin(-a);
-			this.transform[4] = Math.sin(-a);
-			this.transform[5] = Math.cos(-a);
+			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
 
 			const f = 0.00005;
 

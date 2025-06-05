@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+message Vec2 {
+	float x = 1;
+	float y = 2;
+}
+
+message Player {
+	Vec2 position = 1;
+	float rotation = 2;
+	float speed = 3;
+}
+
+message Astroid {
+	Vec2 position = 1;
+	float rotation = 2;
+}
+
+message Bullet {
+	Vec2 position = 1;
+	float rotation = 2;
+}
+
+message Update {
+	repeated Player players = 1;
+	repeated Astroid astroids = 2;
+	repeated Bullet bullets = 3;
+}
+
+message UpdateEvent {
+	int32 topic = 1;
+	Update message = 2;
+}
+

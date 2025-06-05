@@ -4,6 +4,7 @@ import {inject} from "../shared/injector";
 import * as path from "node:path";
 import {Astro} from "../shared/astro/astro";
 import {Node} from "../shared/node/node";
+import {Update, UpdateEvent} from "../shared/proto/generated/update";
 
 const publicDir = path.resolve(import.meta.dir, '../../dist');
 let idCounter = 0;
@@ -141,7 +142,6 @@ backend.main().then(() => {
 	const eventSystem = inject(EventSystem);
 
 	const networkEvents = [
-		Topic.Update,
 		Topic.PlayerConnected,
 		Topic.PlayerDisconnected,
 		Topic.BulletSpawn,
@@ -152,4 +152,9 @@ backend.main().then(() => {
 			webSocketServer.publish('update', JSON.stringify({topic, message: data}),true);
 		});
 	}
+
+	eventSystem.listen(Topic.Update, data => {
+
+		webSocketServer.publish('update', UpdateEvent.encode({topic: Topic.Update, message: data}).finish());
+	});
 });

@@ -1,6 +1,7 @@
 import {Node} from "./node/node";
 import {Control} from "./control";
 import {Type} from "./astro/deserialize";
+import {Update} from "./proto/generated/update";
 
 export enum Topic {
 	Sync,
@@ -18,7 +19,7 @@ export enum Topic {
 
 export interface TopicDataMap {
 	[Topic.Sync]: {idCounter: number, game: Type}
-	[Topic.Update]: { players: Float32Array[], playersSpeed: number[], astroids: Float32Array[], bullets: Float32Array[]} // TODO refactor this!
+	[Topic.Update]: Update
 	[Topic.NodeDestroy]: {id: number, type: string}
 	[Topic.NodeCreate]: Node
 	[Topic.ReceiveUserId]: {userid: string}

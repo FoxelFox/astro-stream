@@ -5,5 +5,7 @@ COPY tsconfig.json ./
 COPY bun.lock ./
 COPY src ./src
 
-RUN bun install && ls && bun run client
+RUN apt update
+RUN apt install -y protobuf-compiler
+RUN bun install && bun run proto && bun run client
 CMD ["bun", "run", "server"]

@@ -5,6 +5,7 @@ import {mat4, vec3} from "wgpu-matrix";
 import {Edge, Settings, World} from "planck";
 import {Astroid} from "./astroid";
 import {Bullet} from "./bullet";
+import {Update} from "../proto/generated/update";
 
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
@@ -23,22 +24,21 @@ export class Astro extends Node {
 		super();
 
 		if (isClient) {
-			this.eventSystem.listen(Topic.Update, data => {
-				// TODO this can be generic
+			this.eventSystem.listen(Topic.Update, update => {
 				const players = this.getChildren(Player);
 				for (let i = 0; i < players.length; ++i) {
-					players[i].transform = new Float32Array(data.players[i]);
-					players[i].speed = data.playersSpeed[i];
+					players[i].applyTransform(update.players[i].position, update.players[i].rotation);
+					players[i].speed = update.players[i].speed;
 				}
 
 				const astroids = this.getChildren(Astroid);
 				for (let i = 0; i < astroids.length; ++i) {
-					astroids[i].transform = new Float32Array(data.astroids[i]);
+					astroids[i].applyTransform(update.astroids[i].position, update.astroids[i].rotation);
 				}
 
 				const bullets = this.getChildren(Bullet);
 				for (let i = 0; i < bullets.length; ++i) {
-					bullets[i].transform = new Float32Array(data.bullets[i]);
+					bullets[i].applyTransform(update.bullets[i].position, update.bullets[i].rotation);
 				}
 			});
 
@@ -187,35 +187,40 @@ export class Astro extends Node {
 		}
 
 		if (isServer) {
-			// TODO This can be generic
-			const playerTransforms = []
-			const playersSpeed = []
-			const astroidTransforms = []
-			const bulletTransforms = []
 
 			const players = this.getChildren(Player);
 			const astroids = this.getChildren(Astroid);
 			const bullets = this.getChildren(Bullet);
 
+			const update : Update = {
+				players: [],
+				astroids: [],
+				bullets: []
+			}
+
 			for (const player of players) {
-				playerTransforms.push(Array.from(player.transform));
-				playersSpeed.push(player.speed);
+				update.players.push({
+					position: player.body.getPosition(),
+					rotation: player.body.getAngle(),
+					speed: player.speed
+				});
 			}
 
 			for (const astroid of astroids) {
-				astroidTransforms.push(Array.from(astroid.transform));
+				update.astroids.push({
+					position: astroid.body.getPosition(),
+					rotation: astroid.body.getAngle()
+				});
 			}
 
 			for (const bullet of bullets) {
-				bulletTransforms.push(Array.from(bullet.transform));
+				update.bullets.push({
+					position: bullet.body.getPosition(),
+					rotation: bullet.body.getAngle()
+				});
 			}
 
-			this.eventSystem.publish(Topic.Update, {
-				players: playerTransforms,
-				playersSpeed: playersSpeed,
-				astroids: astroidTransforms,
-				bullets: bulletTransforms
-			});
+			this.eventSystem.publish(Topic.Update, update);
 		}
 	}
 }

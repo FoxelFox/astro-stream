@@ -8,6 +8,7 @@ import {deserialize} from "../shared/astro/deserialize";
 import {Node} from "../shared/node/node";
 import {Astro} from "../shared/astro/astro";
 import {Sound} from "./audio/sound";
+import {Update, UpdateEvent} from "../shared/proto/generated/update";
 
 
 const url = location.hostname === 'localhost' ? 'ws://localhost:3001' : `wss://ws.${location.hostname}`;
@@ -59,9 +60,15 @@ export function spawn(): Promise<GameContext> {
 			console.log('connected')
 		}
 
-		socket.onmessage = (ev) => {
-			const data = JSON.parse(ev.data);
-			eventSystem.publish(data.topic, data.message);
+		socket.onmessage = async (ev) => {
+			if (typeof ev.data  === 'string') {
+				const data = JSON.parse(ev.data);
+				eventSystem.publish(data.topic, data.message);
+			} else {
+				const ui8 = new Uint8Array(await ev.data.arrayBuffer());
+				const decoded = UpdateEvent.decode(ui8);
+				eventSystem.publish(decoded.topic, decoded.message);
+			}
 		}
 
 		function loop() {
