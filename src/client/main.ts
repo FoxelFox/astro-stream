@@ -1,4 +1,5 @@
-import "./ui/index"
+//import "./ui/index"
+import "./ux/main-ux"
 
 import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";

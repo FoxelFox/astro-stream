@@ -29,6 +29,8 @@ export class Player extends Line {
 			-w, -h,
 			-w, -h,
 			0.0, h,
+			0.0, h,
+			0.0, h* 300,
 		]);
 
 		if (isServer) {
