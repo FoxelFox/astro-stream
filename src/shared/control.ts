@@ -4,4 +4,5 @@ export class Control {
 	left?: boolean = false
 	right?: boolean = false
 	action?: boolean = false
+	rotation?: number = 0
 }

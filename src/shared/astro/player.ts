@@ -2,7 +2,7 @@ import {Node2D} from "../node/2D/node-2d";
 import {Line} from "../node/2D/line";
 import {Control} from "../control";
 import {Topic} from "../event-system";
-import {mat4, vec3} from "wgpu-matrix";
+import {mat4, vec2, vec3} from "wgpu-matrix";
 import {isServer, world} from "./astro";
 import {Body, Math, Polygon, Vec2} from "planck";
 import {Bullet} from "./bullet";
@@ -29,8 +29,8 @@ export class Player extends Line {
 			-w, -h,
 			-w, -h,
 			0.0, h,
-			0.0, h,
-			0.0, h* 300,
+			// 0.0, h,
+			// 0.0, h* 300,
 		]);
 
 		if (isServer) {
@@ -38,7 +38,7 @@ export class Player extends Line {
 				type: "dynamic",
 				position: {x: 0, y: 0},
 				allowSleep: false,
-				angularDamping: 0.001,
+				angularDamping: 0.01,
 				linearDamping: 0.0005
 			});
 
@@ -70,12 +70,19 @@ export class Player extends Line {
 
 			const f = 0.00005;
 
+			const direction = vec2.create(0,0);
+
 			if (this.keys.forward) {
+
+
 				const rad = this.body.getAngle();
 				const cosTheta = Math.cos(rad)
 				const sinTheta = Math.sin(rad)
 
 				this.body.applyForceToCenter({x: -f * sinTheta, y: f * cosTheta}, true);
+
+
+
 			}
 
 			if (this.keys.backward) {
@@ -83,12 +90,29 @@ export class Player extends Line {
 			}
 
 			if (this.keys.right) {
-				this.body.applyTorque(-0.000005, true);
+
 			}
 
 			if (this.keys.left) {
-				this.body.applyTorque(0.000005, true);
+
 			}
+
+
+			const actual = this.body.getAngle();
+			const target = this.keys.rotation;
+
+			const shortestAngle = (Math.atan2(Math.sin(target - actual), Math.cos(target - actual)));
+
+
+			if (this.keys.rotation !== undefined) {
+
+				this.body.applyTorque(0.00005 *shortestAngle  , true);
+			}
+
+
+
+
+			this.body.setAngle(this.body.getAngle());
 
 			if (this.keys.action && this.actionFlipFlop) {
 				this.actionFlipFlop = false;
