@@ -6,6 +6,7 @@ import {Edge, Settings, World} from "planck";
 import {Astroid} from "./astroid";
 import {Bullet} from "./bullet";
 import {Update} from "../proto/generated/update";
+import {deserialize} from "./deserialize";
 
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
@@ -47,6 +48,12 @@ export class Astro extends Node {
 				bullet.id = data.id;
 				bullet.transform = new Float32Array(data.transform);
 				this.addChild(bullet);
+			});
+
+			this.eventSystem.listen(Topic.AstroidSpawn, data => {
+				const astroid = deserialize(data.json);
+				astroid.parent = this;
+				this.addChild(astroid);
 			});
 		}
 
@@ -155,9 +162,10 @@ export class Astro extends Node {
 		});
 
 
-		this.generateAstroids(size);
+		this.generateAstroids(10);
 
-		world.on('begin-contact', contact => {
+		world.on('pre-solve', contact => {
+
 			const a = contact.getFixtureA().getBody().getUserData();
 			const b = contact.getFixtureB().getBody().getUserData();
 
@@ -167,6 +175,16 @@ export class Astro extends Node {
 			if (b instanceof Bullet) {
 				b.destroy();
 			}
+
+			if (a instanceof Astroid) {
+				a.takeHit();
+			}
+
+			if (b instanceof Astroid) {
+				b.takeHit();
+			}
+
+
 		});
 	}
 

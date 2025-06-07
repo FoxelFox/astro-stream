@@ -145,6 +145,7 @@ backend.main().then(() => {
 		Topic.PlayerConnected,
 		Topic.PlayerDisconnected,
 		Topic.BulletSpawn,
+		Topic.AstroidSpawn,
 		Topic.NodeDestroy
 	];
 	for (const topic of networkEvents) {

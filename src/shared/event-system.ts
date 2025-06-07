@@ -14,7 +14,8 @@ export enum Topic {
 	CanvasResize,
 	ClientControlEvent,
 	PlayerControlEvent,
-	BulletSpawn
+	BulletSpawn,
+	AstroidSpawn,
 }
 
 export interface TopicDataMap {
@@ -28,7 +29,8 @@ export interface TopicDataMap {
 	[Topic.CanvasResize]: { width: number; height: number }
 	[Topic.ClientControlEvent]: Control
 	[Topic.PlayerControlEvent]: {userid: string, control: Control}
-	[Topic.BulletSpawn]: {id: number, transform: Float32Array}
+	[Topic.BulletSpawn]: {id: number, transform: number[]}
+	[Topic.AstroidSpawn]: {id: number, json: any}
 }
 
 

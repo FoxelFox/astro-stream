@@ -15,6 +15,7 @@ export class Player extends Line {
 	userid: string
 	body: Body
 	speed: number
+	actionFlipFlop = false;
 
 	constructor() {
 		super();
@@ -49,6 +50,7 @@ export class Player extends Line {
 				])
 			})
 		}
+
 		this.color = new Float32Array([1.0, 1.0, 0.0, 1.0]);
 
 
@@ -86,7 +88,8 @@ export class Player extends Line {
 				this.body.applyTorque(0.000005, true);
 			}
 
-			if (this.keys.action) {
+			if (this.keys.action && this.actionFlipFlop) {
+				this.actionFlipFlop = false;
 				const bullet = new Bullet();
 				bullet.transform = mat4.copy(this.transform);
 
@@ -101,16 +104,18 @@ export class Player extends Line {
 				const cosTheta = Math.cos(rad)
 				const sinTheta = Math.sin(rad)
 
-				const spawn = this.body.getPosition();
+				const spawn = this.body.getPosition().clone();
 				spawn.x -= sinTheta * 3;
 				spawn.y += cosTheta * 3;
-				bullet.body.setPosition(this.body.getPosition());
-				bullet.body.setLinearVelocity(this.body.getLinearVelocity());
+				bullet.body.setPosition(spawn);
+				bullet.body.setLinearVelocity(this.body.getLinearVelocity().clone());
 				bullet.body.applyLinearImpulse({x: -sinTheta, y: cosTheta}, bullet.body.getPosition(), true);
 
-				this.eventSystem.publish(Topic.BulletSpawn, {id: bullet.id,transform: bullet.transform});
+				this.eventSystem.publish(Topic.BulletSpawn, {id: bullet.id,transform: Array.from(bullet.transform)});
 
 				this.parent.addChild(bullet);
+			} else if (!this.keys.action){
+				this.actionFlipFlop = true;
 			}
 
 			this.speed = Vec2.lengthOf(this.body.getLinearVelocity());

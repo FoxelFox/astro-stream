@@ -36,7 +36,7 @@ export class Bullet extends Line {
 
 			const fixture = this.body.createFixture({
 				density: 0.1,
-				restitution: 0.1,
+				restitution: 0.0,
 				shape: new Polygon([
 					{x: 0.0, y: h},
 					{x: -w, y: -h},
