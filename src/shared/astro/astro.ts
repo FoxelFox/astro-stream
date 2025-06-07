@@ -7,6 +7,7 @@ import {Astroid} from "./astroid";
 import {Bullet} from "./bullet";
 import {Update} from "../proto/generated/update";
 import {deserialize} from "./deserialize";
+import {Line} from "../node/2D/line";
 
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
@@ -30,6 +31,7 @@ export class Astro extends Node {
 				for (let i = 0; i < players.length; ++i) {
 					players[i].applyTransform(update.players[i].position, update.players[i].rotation);
 					players[i].speed = update.players[i].speed;
+					players[i].health = update.players[i].health;
 				}
 
 				const astroids = this.getChildren(Astroid);
@@ -164,7 +166,7 @@ export class Astro extends Node {
 
 		this.generateAstroids(10);
 
-		world.on('pre-solve', contact => {
+		world.on('post-solve', (contact, impulse) => {
 
 			const a = contact.getFixtureA().getBody().getUserData();
 			const b = contact.getFixtureB().getBody().getUserData();
@@ -177,15 +179,38 @@ export class Astro extends Node {
 			}
 
 			if (a instanceof Astroid) {
-				a.takeHit();
+				a.takeHit(impulse.normalImpulses[0] * 100);
 			}
 
 			if (b instanceof Astroid) {
-				b.takeHit();
+				b.takeHit(impulse.normalImpulses[0] * 100);
 			}
 
+			if (a instanceof Player) {
+				a.takeHit(impulse.normalImpulses[0] * 100);
+			}
 
+			if (b instanceof Player) {
+				b.takeHit(impulse.normalImpulses[0] * 100);
+			}
 		});
+
+
+		const line = new Line()
+		//line.vertices = new Float32Array([300,0, -300,0])
+		const vertices = []
+		for(let x = -200; x < 204; x += 4) {
+			vertices.push(x,-200, x, 200);
+		}
+
+		for(let y = -200; y < 204; y += 4) {
+			vertices.push(-200, y, 200, y);
+		}
+
+		line.vertices = new Float32Array(vertices);
+		line.color = new Float32Array([0.3,0.3,0.3,0.3])
+
+		this.addChild(line)
 	}
 
 	generateAstroids(size: number) {
@@ -206,6 +231,10 @@ export class Astro extends Node {
 
 		if (isServer) {
 
+			if (this.getChildren(Astroid).length < 50) {
+				this.generateAstroids(2);
+			}
+
 			const players = this.getChildren(Player);
 			const astroids = this.getChildren(Astroid);
 			const bullets = this.getChildren(Bullet);
@@ -220,7 +249,8 @@ export class Astro extends Node {
 				update.players.push({
 					position: player.body.getPosition(),
 					rotation: player.body.getAngle(),
-					speed: player.speed
+					speed: player.speed,
+					health: player.health
 				});
 			}
 

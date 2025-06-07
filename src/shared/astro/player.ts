@@ -16,6 +16,7 @@ export class Player extends Line {
 	body: Body
 	speed: number
 	actionFlipFlop = false;
+	health = 100;
 
 	constructor() {
 		super();
@@ -51,7 +52,11 @@ export class Player extends Line {
 					{x: w, y: -h}
 				])
 			})
+
+			this.body.setUserData(this);
 		}
+
+
 
 		this.color = new Float32Array([1.0, 1.0, 0.0, 1.0]);
 
@@ -167,5 +172,15 @@ export class Player extends Line {
 		world.queueUpdate(() => {
 			world.destroyBody(this.body);
 		});
+	}
+
+	takeHit(damage: number) {
+		this.health -= damage;
+		if (this.health <= 0) {
+			world.queueUpdate(() => {
+				this.body.setPosition({x: 0, y: 0});
+				this.health = 100;
+			})
+		}
 	}
 }

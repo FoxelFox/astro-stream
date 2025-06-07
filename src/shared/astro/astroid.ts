@@ -6,6 +6,7 @@ import {Topic} from "../event-system";
 export class Astroid extends Line {
 
 	body: Body
+	health: number;
 
 
 	constructor(
@@ -14,6 +15,7 @@ export class Astroid extends Line {
 		y: number = (Math.random() - 0.5) * 350
 	) {
 		super();
+		this.health = 10 * this.level;
 
 		if (isServer) {
 
@@ -74,26 +76,31 @@ export class Astroid extends Line {
 		})
 	}
 
-	takeHit() {
+	takeHit(damage: number) {
 		world.queueUpdate(() => {
-			if (isServer && this.level > 1) {
-				for (let i = 0; i < this.level; i++) {
 
-					const newAstro = new Astroid(
-						this.level - 1,
-						this.body.getPosition().x + (Math.random() - 0.5) * 10,
-						this.body.getPosition().y + (Math.random() - 0.5) * 10
-					)
+			this.health -= damage;
 
-					newAstro.body.setLinearVelocity(this.body.getLinearVelocity().clone());
-					newAstro.body.setAngularVelocity((Math.random() - 0.5) * 0.01);
+			if (this.health <= 0) {
+				if (isServer && this.level > 1) {
+					for (let i = 0; i < this.level; i++) {
 
-					this.parent.addChild(newAstro);
-					this.eventSystem.publish(Topic.AstroidSpawn, {id: newAstro.id, json: newAstro.serialize()})
+						const newAstro = new Astroid(
+							this.level - 1,
+							this.body.getPosition().x + (Math.random() - 0.5) * 10,
+							this.body.getPosition().y + (Math.random() - 0.5) * 10
+						)
+
+						newAstro.body.setLinearVelocity(this.body.getLinearVelocity().clone());
+						newAstro.body.setAngularVelocity((Math.random() - 0.5) * 0.01);
+
+						this.parent.addChild(newAstro);
+						this.eventSystem.publish(Topic.AstroidSpawn, {id: newAstro.id, json: newAstro.serialize()})
+					}
 				}
+				world.destroyBody(this.body);
+				this.destroy();
 			}
-			world.destroyBody(this.body);
-			this.destroy();
 		});
 
 	}

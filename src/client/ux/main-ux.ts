@@ -16,6 +16,7 @@ export class MainUx extends LitElement {
 
 	@property() players: number
 	@property() astroids: number
+	@property() health: number
 
 	async startGame() {
 		this.isLoggedIn = true;
@@ -24,6 +25,8 @@ export class MainUx extends LitElement {
 		setInterval(() => {
 			this.astroids = this.context.game.getChildren(Astroid).length;
 			this.players = this.context.game.getChildren(Player).length;
+			// @ts-ignore
+			this.health = Math.round(this.context.gpu.camera.target.health);
 		},16)
 	}
 
@@ -34,6 +37,7 @@ export class MainUx extends LitElement {
 				? html`
 					<div>Players: ${this.players}</div>
 					<div>Astroids: ${this.astroids}</div>
+					<div>Health: ${this.health}</div>
 				`
 				: html`
 					<button
