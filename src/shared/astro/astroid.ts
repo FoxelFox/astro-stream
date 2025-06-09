@@ -1,13 +1,13 @@
 import {Line} from "../node/2D/line";
 import {isServer, world} from "./astro";
-import {Body, Math, Polygon, Vec2} from "planck";
+import {Body, Math, Polygon} from "planck";
 import {Topic} from "../event-system";
 
 export class Astroid extends Line {
 
 	body: Body
 	health: number;
-
+	damageMultiplier = 1;
 
 	constructor(
 		public level: number = 3,
@@ -15,12 +15,12 @@ export class Astroid extends Line {
 		y: number = (Math.random() - 0.5) * 350
 	) {
 		super();
-		this.health = 10 * this.level;
+		this.health = 50 * this.level;
 
 		if (isServer) {
 
-			const w =  this.level;
-			const h = this.level;
+			const w = this.level *2;
+			const h = this.level *2;
 
 			this.vertices = new Float32Array([
 				0.0, h,
@@ -53,12 +53,8 @@ export class Astroid extends Line {
 
 			this.body.setUserData(this);
 
-			switch (this.level) {
-				case 1: this.color = new Float32Array([1.0, 0.0, 1.0, 1.0]); break;
-				case 2: this.color = new Float32Array([1.0, 1.0, 0.0, 1.0]); break;
-				case 3: this.color = new Float32Array([0.0, 1.0, 1.0, 1.0]); break;
-			}
 
+			this.color = new Float32Array([1.0, 1.0, 1.0, 1.0]);
 		}
 	}
 
@@ -66,6 +62,32 @@ export class Astroid extends Line {
 		super.update();
 		if (isServer) {
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
+
+			const pos = this.body.getPosition();
+			if (Math.abs(pos.x) > 200 || Math.abs(pos.y) > 200) {
+				this.health = 0;
+			}
+
+			if (this.health <= 0) {
+				if (isServer && this.level > 1) {
+					for (let i = 0; i < 3; i++) {
+
+						const newAstro = new Astroid(
+							this.level - 1,
+							this.body.getPosition().x + (Math.random() - 0.5) * 4 * this.level,
+							this.body.getPosition().y + (Math.random() - 0.5) * 4 * this.level
+						)
+
+						newAstro.body.setLinearVelocity(this.body.getLinearVelocity().clone());
+						newAstro.body.setAngularVelocity(this.body.getAngularVelocity() + (Math.random() -0.5) * 0.005);
+
+						this.parent.addChild(newAstro);
+						this.eventSystem.publish(Topic.AstroidSpawn, {id: newAstro.id, json: newAstro.serialize()})
+					}
+				}
+				world.destroyBody(this.body);
+				this.destroy();
+			}
 		}
 	}
 
@@ -77,31 +99,6 @@ export class Astroid extends Line {
 	}
 
 	takeHit(damage: number) {
-		world.queueUpdate(() => {
-
-			this.health -= damage;
-
-			if (this.health <= 0) {
-				if (isServer && this.level > 1) {
-					for (let i = 0; i < this.level; i++) {
-
-						const newAstro = new Astroid(
-							this.level - 1,
-							this.body.getPosition().x + (Math.random() - 0.5) * 10,
-							this.body.getPosition().y + (Math.random() - 0.5) * 10
-						)
-
-						newAstro.body.setLinearVelocity(this.body.getLinearVelocity().clone());
-						newAstro.body.setAngularVelocity((Math.random() - 0.5) * 0.01);
-
-						this.parent.addChild(newAstro);
-						this.eventSystem.publish(Topic.AstroidSpawn, {id: newAstro.id, json: newAstro.serialize()})
-					}
-				}
-				world.destroyBody(this.body);
-				this.destroy();
-			}
-		});
-
+		this.health -= damage;
 	}
 }

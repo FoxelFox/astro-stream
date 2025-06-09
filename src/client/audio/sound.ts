@@ -3,9 +3,6 @@ import {EventSystem, Topic} from "../../shared/event-system";
 import {inject} from "../../shared/injector";
 import {Player} from "../../shared/astro/player";
 import {Astro} from "../../shared/astro/astro";
-import {Synth, ToneAudioNode} from "tone";
-import {Vec2} from "planck";
-import {mat4, vec3} from "wgpu-matrix";
 
 await Tone.start();
 
@@ -52,8 +49,39 @@ export class Sound {
 		this.lfo.connect(this.filter.frequency); // LFO moduliert die Cutoff-Frequenz des Filters
 
 		this.eventSystem.listen(Topic.BulletSpawn, data => {
-			//this.synth.triggerAttack("C4", "8n");
-		})
+			const synth = new Tone.Synth({
+				oscillator: { type: 'triangle' },
+				envelope: { attack: 0.02, decay: 0.5, sustain: 0, release: 0.2 },
+				volume: -20
+			}).toDestination();
+
+			// The LFO creates the "wobble" effect on the pitch.
+			const lfo = new Tone.LFO({
+				frequency: "1hz",
+				type: "sine",
+				min: -100, // Cents to detune down
+				max: 100   // Cents to detune up
+			}).start();
+
+			lfo.connect(synth.detune);
+
+			synth.triggerAttackRelease('F3', '0.5n');
+
+			// Stop and dispose of the LFO and synth to clean up.
+			setTimeout(() => {
+				lfo.stop().dispose();
+				synth.dispose();
+			}, 800);
+		});
+
+		this.eventSystem.listen(Topic.NodeDestroy, data => {
+
+			switch (data.type) {
+				case 'Bullet': this.playRicochetSound(); break;
+				case 'Astroid': this.playExplosionSound(); break;
+			}
+
+		});
 
 		this.eventSystem.listen(Topic.ReceiveUserId, data => {
 			this.player = this.astro.getChildren(Player).find(p => p.userid == data.userid);
@@ -68,8 +96,6 @@ export class Sound {
 	update() {
 		const speed = (this.player && this.player.speed ? this.player.speed : 0.00001) *1000;
 		const intensity = 0.1; // 0-1
-
-
 
 		// 1. Motortonhöhe (Oszillator-Frequenz)
 		const enginePitch = this.scaleValue(speed, 0, 100, 40, 100 + intensity * 100);
@@ -97,6 +123,90 @@ export class Sound {
 		this.filter.Q.rampTo(filterQValue, 0.05);
 
 
+	}
+
+	playDestroySound() {
+		const noise = new Tone.NoiseSynth({
+			noise: { type: "white" },
+			envelope: { attack: 0.005, decay: 0.3, sustain: 0 }
+		}).toDestination();
+		const crusher = new Tone.BitCrusher(4).toDestination();
+		noise.connect(crusher);
+		noise.triggerAttackRelease("0.2");
+		setTimeout(() => {
+			noise.dispose();
+			crusher.dispose();
+		}, 500);
+	}
+
+	playBlobSound() {
+		const synth = new Tone.MembraneSynth({
+			volume: -30,
+			pitchDecay: 0.01,
+			octaves: 6,
+			oscillator: { type: 'triangle' },
+			envelope: { attack: 0.01, decay: 0.5, sustain: 0.01, release: 0.4 }
+		}).toDestination();
+		const vibrato = new Tone.Vibrato({
+			maxDelay: 0.005,
+			frequency: 5,
+			depth: 0.1,
+			type: 'sine'
+		}).toDestination();
+		synth.connect(vibrato);
+		synth.triggerAttackRelease('C2', '8n');
+		setTimeout(() => {
+			synth.dispose();
+			vibrato.dispose();
+		}, 1000);
+	}
+
+	playRicochetSound() {
+		const synth = new Tone.Synth({
+			oscillator: { type: 'square' },
+			envelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.1 },
+			volume: -40
+		}).toDestination();
+		const now = Tone.now();
+		// Create a rapid up-and-down pitch change for the "zing"
+		synth.triggerAttack('G5', now);
+		synth.frequency.linearRampTo('E6', now + 0.05);
+		synth.frequency.linearRampTo('A4', now + 0.1);
+		setTimeout(() => synth.dispose(), 500);
+	}
+
+	playExplosionSound() {
+		const now = Tone.now();
+
+		// The main BOOM, a low-pitched and distorted sine wave.
+		const boom = new Tone.MembraneSynth({
+			pitchDecay: 0.05,
+			octaves: 2,
+			volume: -30,
+			oscillator: { type: "sine" },
+			envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+		}).toDestination();
+		const dist = new Tone.Distortion(0.18).toDestination();
+		boom.connect(dist);
+
+		// The crackling debris, made with filtered noise.
+		const debris = new Tone.NoiseSynth({
+			noise: { type: "brown" },
+			volume: -30,
+			envelope: { attack: 0.05, decay: 0.5, sustain: 0 }
+		}).toDestination();
+		const filter = new Tone.AutoFilter("16n.").toDestination().start();
+		debris.connect(filter);
+
+		boom.triggerAttackRelease("256n", "8n", now);
+		debris.triggerAttackRelease("8n", now + 0.1);
+
+		setTimeout(() => {
+			boom.dispose();
+			debris.dispose();
+			dist.dispose();
+			filter.dispose();
+		}, 800);
 	}
 
 }

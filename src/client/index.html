@@ -9,7 +9,8 @@
 			color: white;
 			margin: 0;
 			overflow: hidden;
-			user-select: none
+			user-select: none;
+			font-family: sans-serif;
 		}
 		canvas {
 			width: 100%;
@@ -19,9 +20,8 @@
 	</style>
 </head>
 <body>
-	<div style="position: absolute" id="root"></div>
-	<main-ux style="position: absolute"></main-ux>
-	<canvas></canvas>
+	<canvas style="position: absolute; z-index: -1"></canvas>
+	<main-ux></main-ux>
 </body>
 <script src="main.ts"></script>
 </html>

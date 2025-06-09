@@ -57,6 +57,7 @@ export class Camera {
 		if (this.target) {
 
 			const target = mat4.setTranslation(mat4.identity(), mat4.getTranslation(this.target.transform));
+			//const target = this.target.transform;
 			return mat4.multiply(this.projection, mat4.inverse(target));
 		} else {
 			return this.projection;

@@ -12,18 +12,22 @@ import {Line} from "../node/2D/line";
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
 
-export let world = new World({
-	gravity: {x: 0, y: 0},
-});
+export let world
 
 //Settings.lengthUnitsPerMeter = 1;
 Settings.velocityThreshold = 0;
+Settings.linearSleepTolerance = 0.001;
+Settings.angularSleepTolerance = 0.01;
 
 export class Astro extends Node {
 
 
 	constructor() {
 		super();
+
+		world = new World({
+			gravity: {x: 0, y: 0},
+		});
 
 		if (isClient) {
 			this.eventSystem.listen(Topic.Update, update => {
@@ -43,7 +47,16 @@ export class Astro extends Node {
 				for (let i = 0; i < bullets.length; ++i) {
 					bullets[i].applyTransform(update.bullets[i].position, update.bullets[i].rotation);
 				}
+
+
 			});
+
+			this.eventSystem.listen(Topic.AstroidSpawn, data => {
+				const astroid = deserialize(data.json);
+				astroid.parent = this;
+				this.addChild(astroid);
+			});
+
 
 			this.eventSystem.listen(Topic.BulletSpawn, data => {
 				const bullet = new Bullet();
@@ -52,11 +65,7 @@ export class Astro extends Node {
 				this.addChild(bullet);
 			});
 
-			this.eventSystem.listen(Topic.AstroidSpawn, data => {
-				const astroid = deserialize(data.json);
-				astroid.parent = this;
-				this.addChild(astroid);
-			});
+
 		}
 
 		this.eventSystem.listen(Topic.NodeDestroy, data => {
@@ -67,7 +76,7 @@ export class Astro extends Node {
 			console.log("Player Connected", userid);
 			const newPlayer = new Player();
 			newPlayer.userid = userid
-			newPlayer.transform =  mat4.translate(newPlayer.transform, vec3.fromValues(Math.random() * 10 - 5, Math.random() * 10 -5))
+			newPlayer.transform = mat4.translate(newPlayer.transform, vec3.fromValues(Math.random() * 10 - 5, Math.random() * 10 - 5))
 			this.addChild(newPlayer);
 		});
 
@@ -79,7 +88,7 @@ export class Astro extends Node {
 		});
 	}
 
-	init () {
+	init() {
 
 		const size = 200;
 
@@ -125,42 +134,42 @@ export class Astro extends Node {
 
 		let platformBottom2 = world.createBody({
 			type: "static",
-			position: {x: 0, y: -size*2},
+			position: {x: 0, y: -size * 2},
 			angle: 0
 		});
 
 		platformBottom2.createFixture({
-			shape: new Edge({x: -size*2, y: 0}, {x: +size*2, y: 0}),
+			shape: new Edge({x: -size * 2, y: 0}, {x: +size * 2, y: 0}),
 		});
 
 		let platformTop2 = world.createBody({
 			type: "static",
-			position: {x: 0, y: size*2},
+			position: {x: 0, y: size * 2},
 			angle: 0
 		});
 
 		platformTop2.createFixture({
-			shape: new Edge({x: -size*2, y: 0}, {x: +size*2, y: 0}),
+			shape: new Edge({x: -size * 2, y: 0}, {x: +size * 2, y: 0}),
 		});
 
 		let platformLeft2 = world.createBody({
 			type: "static",
-			position: {x: -size*2, y: 0},
+			position: {x: -size * 2, y: 0},
 			angle: 0
 		});
 
 		platformLeft2.createFixture({
-			shape: new Edge({x: 0, y: -size*2}, {x: 0, y: size*2}),
+			shape: new Edge({x: 0, y: -size * 2}, {x: 0, y: size * 2}),
 		});
 
 		let platformRight2 = world.createBody({
 			type: "static",
-			position: {x: size*2, y: 0},
+			position: {x: size * 2, y: 0},
 			angle: 0
 		});
 
 		platformRight2.createFixture({
-			shape: new Edge({x: 0, y: -size*2}, {x: 0, y: size*2})
+			shape: new Edge({x: 0, y: -size * 2}, {x: 0, y: size * 2})
 		});
 
 
@@ -168,8 +177,8 @@ export class Astro extends Node {
 
 		world.on('post-solve', (contact, impulse) => {
 
-			const a = contact.getFixtureA().getBody().getUserData();
-			const b = contact.getFixtureB().getBody().getUserData();
+			const a = contact.getFixtureA().getBody().getUserData() as { damageMultiplier?: number };
+			const b = contact.getFixtureB().getBody().getUserData() as { damageMultiplier?: number };
 
 			if (a instanceof Bullet) {
 				a.destroy();
@@ -179,19 +188,19 @@ export class Astro extends Node {
 			}
 
 			if (a instanceof Astroid) {
-				a.takeHit(impulse.normalImpulses[0] * 100);
+				a.takeHit(impulse.normalImpulses[0] * 100 * b?.damageMultiplier || 1);
 			}
 
 			if (b instanceof Astroid) {
-				b.takeHit(impulse.normalImpulses[0] * 100);
+				b.takeHit(impulse.normalImpulses[0] * 100 * a?.damageMultiplier || 1);
 			}
 
 			if (a instanceof Player) {
-				a.takeHit(impulse.normalImpulses[0] * 100);
+				a.takeHit(impulse.normalImpulses[0] * 100 * b?.damageMultiplier || 1);
 			}
 
 			if (b instanceof Player) {
-				b.takeHit(impulse.normalImpulses[0] * 100);
+				b.takeHit(impulse.normalImpulses[0] * 100 * a?.damageMultiplier || 1);
 			}
 		});
 
@@ -199,22 +208,22 @@ export class Astro extends Node {
 		const line = new Line()
 		//line.vertices = new Float32Array([300,0, -300,0])
 		const vertices = []
-		for(let x = -200; x < 204; x += 4) {
-			vertices.push(x,-200, x, 200);
+		for (let x = -200; x < 204; x += 4) {
+			vertices.push(x, -200, x, 200);
 		}
 
-		for(let y = -200; y < 204; y += 4) {
+		for (let y = -200; y < 204; y += 4) {
 			vertices.push(-200, y, 200, y);
 		}
 
 		line.vertices = new Float32Array(vertices);
-		line.color = new Float32Array([0.3,0.3,0.3,0.3])
+		line.color = new Float32Array([0.3, 0.3, 0.3, 0.3])
 
 		this.addChild(line)
 	}
 
 	generateAstroids(size: number) {
-		for (let i = 0; i < size*2; ++i) {
+		for (let i = 0; i < size * 2; ++i) {
 			this.addChild(new Astroid());
 		}
 
@@ -230,16 +239,15 @@ export class Astro extends Node {
 		}
 
 		if (isServer) {
-
 			if (this.getChildren(Astroid).length < 50) {
-				this.generateAstroids(2);
+				this.generateAstroids(1);
 			}
 
 			const players = this.getChildren(Player);
 			const astroids = this.getChildren(Astroid);
 			const bullets = this.getChildren(Bullet);
 
-			const update : Update = {
+			const update: Update = {
 				players: [],
 				astroids: [],
 				bullets: []
@@ -270,5 +278,10 @@ export class Astro extends Node {
 
 			this.eventSystem.publish(Topic.Update, update);
 		}
+	}
+
+	destroy() {
+		super.destroy();
+		Node.idCounter = 0;
 	}
 }

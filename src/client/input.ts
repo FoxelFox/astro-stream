@@ -28,20 +28,34 @@ export class Input {
 			}
 		}
 
-		const handleMouse = (ev: MouseEvent) => {
+		const handleMouseMove = (ev: MouseEvent) => {
 
-			const x = ev.clientX - document.body.clientWidth / 2;
-			const y = document.body.clientHeight / 2 - ev.clientY;
-
-
+			const x = ev.clientX - window.innerWidth / 2;
+			const y = window.innerHeight / 2 - ev.clientY;
 
 			this.control.rotation = this.keepInRange(Math.atan2(y, x) + Math.PI / 2);
 			this.eventSystem.publish(Topic.ClientControlEvent, this.control);
 		}
 
+
+		const handleClick = (ev: MouseEvent, isDown) => {
+
+			switch (ev.button) {
+				case 0: this.control.action = isDown; break;
+				case 2: this.control.forward = isDown; break;
+			}
+
+			this.eventSystem.publish(Topic.ClientControlEvent, this.control);
+		}
+
 		document.addEventListener('keyup', ev => handle(ev, false));
 		document.addEventListener('keydown', ev => handle(ev, true));
-		document.addEventListener('mousemove', ev => handleMouse(ev));
+		document.addEventListener('mousemove', ev => handleMouseMove(ev));
+		document.addEventListener('mousedown', ev => handleClick(ev, true));
+		document.addEventListener('mouseup', ev => handleClick(ev, false));
+		document.addEventListener('contextmenu', event => {
+			event.preventDefault();
+		});
 	}
 
 	clampRadToPi(rad) {

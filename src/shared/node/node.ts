@@ -7,7 +7,7 @@ export class Node {
 	id: number;
 	eventSystem = inject(EventSystem);
 	parent?: Node;
-	private children: Array<Node> = [];
+	children: Array<Node> = [];
 
 	constructor(id?: number) {
 		if (id === undefined) {

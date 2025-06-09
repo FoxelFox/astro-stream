@@ -35,19 +35,22 @@ export class MainUx extends LitElement {
 		return html`
 			${this.isLoggedIn
 				? html`
-					<div>Players: ${this.players}</div>
-					<div>Astroids: ${this.astroids}</div>
-					<div>Health: ${this.health}</div>
-				`
+					<div style="padding: 16px">
+						<div>🧑‍🚀 ${this.players}</div>
+						<div>🪨 ${this.astroids}</div>
+						<div>❤️ ${this.health}</div>
+					</div>
+			`
 				: html`
-					<button
-						@click="${this.startGame}"
-						?disabled="${this.isLoggedIn}"
-					>
-						Start
-					</button>
-				`}
-			
+					<div style="display: grid; place-items: center; height: 100vh">
+						<button
+							@click="${this.startGame}"
+							?disabled="${this.isLoggedIn}"
+						>
+							Start
+						</button>
+					</div>
+			`}
 		`
 	}
 }

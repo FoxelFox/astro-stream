@@ -1,8 +1,7 @@
-import {Node2D} from "../node/2D/node-2d";
 import {Line} from "../node/2D/line";
 import {Control} from "../control";
 import {Topic} from "../event-system";
-import {mat4, vec2, vec3} from "wgpu-matrix";
+import {mat4, vec2} from "wgpu-matrix";
 import {isServer, world} from "./astro";
 import {Body, Math, Polygon, Vec2} from "planck";
 import {Bullet} from "./bullet";
@@ -57,7 +56,6 @@ export class Player extends Line {
 		}
 
 
-
 		this.color = new Float32Array([1.0, 1.0, 0.0, 1.0]);
 
 
@@ -74,34 +72,17 @@ export class Player extends Line {
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
 
 			const f = 0.00005;
-
-			const direction = vec2.create(0,0);
-
 			if (this.keys.forward) {
-
-
 				const rad = this.body.getAngle();
 				const cosTheta = Math.cos(rad)
 				const sinTheta = Math.sin(rad)
 
 				this.body.applyForceToCenter({x: -f * sinTheta, y: f * cosTheta}, true);
-
-
-
 			}
 
 			if (this.keys.backward) {
 
 			}
-
-			if (this.keys.right) {
-
-			}
-
-			if (this.keys.left) {
-
-			}
-
 
 			const actual = this.body.getAngle();
 			const target = this.keys.rotation;
@@ -111,10 +92,8 @@ export class Player extends Line {
 
 			if (this.keys.rotation !== undefined) {
 
-				this.body.applyTorque(0.00005 *shortestAngle  , true);
+				this.body.applyTorque(0.00005 * shortestAngle, true);
 			}
-
-
 
 
 			this.body.setAngle(this.body.getAngle());
@@ -142,10 +121,10 @@ export class Player extends Line {
 				bullet.body.setLinearVelocity(this.body.getLinearVelocity().clone());
 				bullet.body.applyLinearImpulse({x: -sinTheta, y: cosTheta}, bullet.body.getPosition(), true);
 
-				this.eventSystem.publish(Topic.BulletSpawn, {id: bullet.id,transform: Array.from(bullet.transform)});
+				this.eventSystem.publish(Topic.BulletSpawn, {id: bullet.id, transform: Array.from(bullet.transform)});
 
 				this.parent.addChild(bullet);
-			} else if (!this.keys.action){
+			} else if (!this.keys.action) {
 				this.actionFlipFlop = true;
 			}
 
@@ -180,6 +159,8 @@ export class Player extends Line {
 			world.queueUpdate(() => {
 				this.body.setPosition({x: 0, y: 0});
 				this.health = 100;
+				this.body.setAngularVelocity(0);
+				this.body.setLinearVelocity({x: 0, y: 0});
 			})
 		}
 	}

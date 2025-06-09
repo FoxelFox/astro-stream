@@ -1,13 +1,12 @@
-import {Node2D} from "../node/2D/node-2d";
 import {Line} from "../node/2D/line";
-import {mat4, vec3} from "wgpu-matrix";
 import {isServer, world} from "./astro";
-import {Body, Math, Polygon} from "planck";
+import {Body, Polygon} from "planck";
 
 
 export class Bullet extends Line {
 
 	body: Body
+	damageMultiplier = 5;
 
 	constructor() {
 		super();
@@ -34,7 +33,7 @@ export class Bullet extends Line {
 				allowSleep: false
 			});
 
-			const fixture = this.body.createFixture({
+			this.body.createFixture({
 				density: 1,
 				restitution: 0.0,
 				shape: new Polygon([
