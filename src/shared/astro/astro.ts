@@ -8,6 +8,7 @@ import {Bullet} from "./bullet";
 import {Update} from "../proto/generated/update";
 import {deserialize} from "./deserialize";
 import {Line} from "../node/2D/line";
+import {Item} from "./item";
 
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
@@ -48,6 +49,10 @@ export class Astro extends Node {
 					bullets[i].applyTransform(update.bullets[i].position, update.bullets[i].rotation);
 				}
 
+				const items = this.getChildren(Item);
+				for (let i = 0; i < items.length; ++i) {
+					items[i].applyTransform(update.items[i].position, update.items[i].rotation);
+				}
 
 			});
 
@@ -57,6 +62,11 @@ export class Astro extends Node {
 				this.addChild(astroid);
 			});
 
+			this.eventSystem.listen(Topic.ItemSpawn, data => {
+				const item = deserialize(data.json);
+				item.parent = this;
+				this.addChild(item);
+			});
 
 			this.eventSystem.listen(Topic.BulletSpawn, data => {
 				const bullet = new Bullet();
@@ -202,6 +212,22 @@ export class Astro extends Node {
 			if (b instanceof Player) {
 				b.takeHit(impulse.normalImpulses[0] * 100 * a?.damageMultiplier || 1);
 			}
+
+			if (a instanceof Item) {
+				if (b instanceof Player) {
+					a.lastUser = b;
+				} else {
+					a.destroy();
+				}
+			}
+
+			if (b instanceof Item) {
+				if (a instanceof Player) {
+					b.lastUser = a;
+				} else {
+					b.destroy();
+				}
+			}
 		});
 
 
@@ -224,7 +250,10 @@ export class Astro extends Node {
 
 	generateAstroids(size: number) {
 		for (let i = 0; i < size * 2; ++i) {
-			this.addChild(new Astroid());
+			const newAstro =  new Astroid();
+			this.addChild(newAstro);
+
+			this.eventSystem.publish(Topic.AstroidSpawn, {id: newAstro.id, json: newAstro.serialize()})
 		}
 
 	}
@@ -239,18 +268,16 @@ export class Astro extends Node {
 		}
 
 		if (isServer) {
-			if (this.getChildren(Astroid).length < 50) {
-				this.generateAstroids(1);
-			}
-
 			const players = this.getChildren(Player);
 			const astroids = this.getChildren(Astroid);
 			const bullets = this.getChildren(Bullet);
+			const items = this.getChildren(Item);
 
 			const update: Update = {
 				players: [],
 				astroids: [],
-				bullets: []
+				bullets: [],
+				items: []
 			}
 
 			for (const player of players) {
@@ -274,6 +301,17 @@ export class Astro extends Node {
 					position: bullet.body.getPosition(),
 					rotation: bullet.body.getAngle()
 				});
+			}
+
+			for (const item of items) {
+				update.items.push({
+					position: item.body.getPosition(),
+					rotation: item.body.getAngle()
+				});
+			}
+
+			if (this.getChildren(Astroid).length < 50) {
+				this.generateAstroids(1);
 			}
 
 			this.eventSystem.publish(Topic.Update, update);

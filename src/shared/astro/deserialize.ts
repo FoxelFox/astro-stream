@@ -5,6 +5,7 @@ import {Line} from "../node/2D/line";
 import {Player} from "./player";
 import {Astroid} from "./astroid";
 import {Bullet} from "./bullet";
+import {Item} from "./item";
 
 
 export interface Type {
@@ -24,6 +25,7 @@ export function deserialize(json: Type): Node {
 		case 'Player': instance = new Player(); break;
 		case 'Astroid': instance = new Astroid(); break;
 		case 'Bullet': instance = new Bullet(); break;
+		case 'Item': instance = new Item(); break;
 	}
 
 	instance = instance.deserialize(json);

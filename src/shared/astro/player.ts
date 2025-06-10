@@ -164,4 +164,13 @@ export class Player extends Line {
 			})
 		}
 	}
+
+	heal(hp: number) {
+		this.health = Math.min(this.health + hp, this.maxHealth);
+
+	}
+
+	get maxHealth() {
+		return 100;
+	}
 }

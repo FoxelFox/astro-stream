@@ -4,10 +4,11 @@ import {EventSystem, Topic} from "../event-system";
 export class Node {
 
 	static idCounter = 0;
+
 	id: number;
-	eventSystem = inject(EventSystem);
 	parent?: Node;
 	children: Array<Node> = [];
+	eventSystem = inject(EventSystem);
 
 	constructor(id?: number) {
 		if (id === undefined) {

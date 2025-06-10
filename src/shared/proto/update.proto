@@ -17,6 +17,11 @@ message Astroid {
 	float rotation = 2;
 }
 
+message Item {
+	Vec2 position = 1;
+	float rotation = 2;
+}
+
 message Bullet {
 	Vec2 position = 1;
 	float rotation = 2;
@@ -26,6 +31,7 @@ message Update {
 	repeated Player players = 1;
 	repeated Astroid astroids = 2;
 	repeated Bullet bullets = 3;
+	repeated Item items = 4;
 }
 
 message UpdateEvent {

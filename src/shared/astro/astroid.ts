@@ -2,6 +2,7 @@ import {Line} from "../node/2D/line";
 import {isServer, world} from "./astro";
 import {Body, Math, Polygon} from "planck";
 import {Topic} from "../event-system";
+import {Item} from "./item";
 
 export class Astroid extends Line {
 
@@ -93,9 +94,23 @@ export class Astroid extends Line {
 
 	destroy() {
 		super.destroy();
-		world.queueUpdate(() => {
-			world.destroyBody(this.body);
-		})
+
+		if (this.level === 1) {
+			const item = new Item(
+				this.body.getPosition().x,
+				this.body.getPosition().y
+			)
+
+			item.body.setLinearVelocity(this.body.getLinearVelocity().clone().mul(0.25));
+			item.body.setAngularVelocity(this.body.getAngularVelocity() + (Math.random() -0.5) * 0.005);
+
+			this.parent.addChild(item);
+			this.eventSystem.publish(Topic.ItemSpawn, {id: item.id, json: item.serialize()})
+
+			world.queueUpdate(() => {
+				world.destroyBody(this.body);
+			})
+		}
 	}
 
 	takeHit(damage: number) {

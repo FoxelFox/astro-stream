@@ -16,6 +16,7 @@ export enum Topic {
 	PlayerControlEvent,
 	BulletSpawn,
 	AstroidSpawn,
+	ItemSpawn,
 }
 
 export interface TopicDataMap {
@@ -31,6 +32,7 @@ export interface TopicDataMap {
 	[Topic.PlayerControlEvent]: {userid: string, control: Control}
 	[Topic.BulletSpawn]: {id: number, transform: number[]}
 	[Topic.AstroidSpawn]: {id: number, json: any}
+	[Topic.ItemSpawn]: {id: number, json: any}
 }
 
 
