@@ -4,6 +4,7 @@ import {EventSystem, Topic} from "../../shared/event-system";
 import {canvas, context, device} from "./gpu";
 import {Node2D} from "../../shared/node/2D/node-2d";
 import {Math} from "planck";
+import {Player} from "../../shared/astro/player";
 
 
 export class Camera {
@@ -14,7 +15,7 @@ export class Camera {
 	eventSystem = inject(EventSystem);
 	multisampleTexture: GPUTexture;
 
-	constructor(public target: Node2D) {
+	constructor(public target: Player) {
 
 		this.eventSystem.listen(Topic.CanvasResize, params => {
 			this.createMatrix(params);

@@ -37,6 +37,7 @@ export class Astro extends Node {
 					players[i].applyTransform(update.players[i].position, update.players[i].rotation);
 					players[i].speed = update.players[i].speed;
 					players[i].health = update.players[i].health;
+					players[i].xp = update.players[i].xp;
 				}
 
 				const astroids = this.getChildren(Astroid);
@@ -285,7 +286,8 @@ export class Astro extends Node {
 					position: player.body.getPosition(),
 					rotation: player.body.getAngle(),
 					speed: player.speed,
-					health: player.health
+					health: player.health,
+					xp: player.xp,
 				});
 			}
 

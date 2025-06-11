@@ -9,7 +9,8 @@ message Player {
 	Vec2 position = 1;
 	float rotation = 2;
 	float speed = 3;
-	float health = 4;
+	float xp = 4;
+	float health = 5;
 }
 
 message Astroid {

@@ -16,6 +16,8 @@ export class Player extends Line {
 	speed: number
 	actionFlipFlop = false;
 	health = 100;
+	xp = 0;
+
 
 	constructor() {
 		super();
@@ -28,9 +30,7 @@ export class Player extends Line {
 			w, -h,
 			-w, -h,
 			-w, -h,
-			0.0, h,
-			// 0.0, h,
-			// 0.0, h* 300,
+			0.0, h
 		]);
 
 		if (isServer) {
@@ -167,10 +167,28 @@ export class Player extends Line {
 
 	heal(hp: number) {
 		this.health = Math.min(this.health + hp, this.maxHealth);
+	}
 
+	get level(): number {
+		return Math.floor(Math.pow(this.xp / 100, 2 / 3)) + 1;
+	}
+
+	private getXpForLevel(level: number): number {
+		return Math.ceil(100 * Math.pow(level - 1, 1.5));
+	}
+
+	getCurrentLevelXpRange(): { current: number; start: number; end: number } {
+		const startXP = this.getXpForLevel(this.level);
+		const endXP = this.getXpForLevel(this.level + 1);
+
+		return {
+			current: this.xp,
+			start: startXP,
+			end: endXP,
+		};
 	}
 
 	get maxHealth() {
-		return 100;
+		return 100 + (this.level - 1) * 25;
 	}
 }

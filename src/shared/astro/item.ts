@@ -62,8 +62,15 @@ export class Item extends Line {
 		if (isServer) {
 			if (this.lastUser) {
 				this.lastUser.heal(25);
+				this.lastUser.xp += 25;
 				this.destroy();
 			}
+
+			const pos = this.body.getPosition();
+			if (Math.abs(pos.x) > 200 || Math.abs(pos.y) > 200) {
+				this.destroy();
+			}
+
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
 		}
 	}
