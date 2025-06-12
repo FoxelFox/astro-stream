@@ -81,6 +81,7 @@ export class Astroid extends Line {
 
 						newAstro.body.setLinearVelocity(this.body.getLinearVelocity().clone());
 						newAstro.body.setAngularVelocity(this.body.getAngularVelocity() + (Math.random() -0.5) * 0.005);
+						newAstro.applyTransform(newAstro.body.getPosition(), this.body.getAngle());
 
 						this.parent.addChild(newAstro);
 						this.eventSystem.publish(Topic.AstroidSpawn, {id: newAstro.id, json: newAstro.serialize()})
@@ -103,6 +104,7 @@ export class Astroid extends Line {
 
 			item.body.setLinearVelocity(this.body.getLinearVelocity().clone().mul(0.25));
 			item.body.setAngularVelocity(this.body.getAngularVelocity() + (Math.random() -0.5) * 0.005);
+			item.applyTransform(item.body.getPosition(), this.body.getAngle());
 
 			this.parent.addChild(item);
 			this.eventSystem.publish(Topic.ItemSpawn, {id: item.id, json: item.serialize()})

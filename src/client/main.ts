@@ -1,5 +1,6 @@
-//import "./ui/index"
+
 import "./ux/main-ux"
+import "./ux/progress-bar"
 
 import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";

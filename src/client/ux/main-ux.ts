@@ -19,7 +19,7 @@ export class MainUx extends LitElement {
 	@property() health: number
 	@property() matHealth: number
 	@property() xp: number
-	@property() xpPercent: number
+	@property() xpPercent: number = 0
 	@property() level: number
 
 
@@ -35,7 +35,13 @@ export class MainUx extends LitElement {
 			this.xp = this.context.gpu.camera.target.xp;
 			this.level = this.context.gpu.camera.target.level;
 			const range = this.context.gpu.camera.target.getCurrentLevelXpRange();
-			this.xpPercent = (this.xp - range.start) / (range.end - range.start) * 100;
+			const percent = (this.xp - range.start) / (range.end - range.start) * 100;
+
+			if (isNaN(this.xpPercent)) {
+				this.xpPercent = 0;
+			} else {
+				this.xpPercent = percent;
+			}
 
 		},16)
 	}
@@ -45,15 +51,7 @@ export class MainUx extends LitElement {
 		return html`
 			
 			<style>
-				.progress {
-					z-index: -1;
-					position: absolute;
-					width: ${this.xpPercent * 2.14}px;
-					height: 28px;
-					margin: -1px -7px;
-					background-color: rgb(32,128,32);
-					border-radius: 1px
-				}
+				
 			</style>
 			${this.isLoggedIn
 				? html`
@@ -62,15 +60,25 @@ export class MainUx extends LitElement {
 						<div>
 							<div>🧑‍🚀 ${this.players}</div>
 							<div>🪨 ${this.astroids}</div>
-							<div>❤️ ${this.health} / ${this.matHealth}</div>
 						</div>
+
 						
-						<div style="width: 200px; box-shadow:inset 0 0 0 1px gray; padding: 0 8px; height: 30px; justify-items: center; align-content: center; border-radius: 2px">
-							<div class="progress"></div>
-							<div style="display: flex; width: 100%; justify-content: space-between;flex-direction: row; align-items: center;">
-								<div>⭐ ${this.level}</div>
-								<div>${this.xp} XP</div>
-							</div>
+						<div style="display: flex; justify-content: space-between"">
+							<progress-bar
+								style="width: 200px;"
+								value="${Math.round(this.health / this.matHealth * 100)}"
+								right="${this.health} HP"
+								left="❤️"
+								color="rgba(153, 51, 40, 0.7)"
+							></progress-bar>
+							<div style="width: 16px"></div>
+							<progress-bar
+								style="width: 200px;"
+								value="${this.xpPercent}"
+								right="${this.xp} XP"
+								left="⭐ ${this.level}"
+								color="rgba(162, 145, 26, 0.7)"
+							></progress-bar>
 						</div>
 					</div>
 			`

@@ -6,6 +6,7 @@ import {isServer, world} from "./astro";
 import {Body, Math, Polygon, Vec2} from "planck";
 import {Bullet} from "./bullet";
 import {Node} from "../node/node";
+import {Item} from "./item";
 
 
 export class Player extends Line {
@@ -157,8 +158,27 @@ export class Player extends Line {
 		this.health -= damage;
 		if (this.health <= 0) {
 			world.queueUpdate(() => {
+
+				for (let i = 0; i < this.level; ++i) {
+
+					// TODO Duplicate Code
+					const item = new Item(
+						this.body.getPosition().x + (Math.random() -0.5) * 10,
+						this.body.getPosition().y + (Math.random() -0.5) * 10
+					)
+
+					item.body.setLinearVelocity(this.body.getLinearVelocity().clone().mul(0.025));
+					item.body.setAngularVelocity(this.body.getAngularVelocity() + (Math.random() -0.5) * 0.0005);
+					item.applyTransform(item.body.getPosition(), this.body.getAngle());
+
+					this.parent.addChild(item);
+					this.eventSystem.publish(Topic.ItemSpawn, {id: item.id, json: item.serialize()})
+				}
+
+
 				this.body.setPosition({x: 0, y: 0});
 				this.health = 100;
+				this.xp = 0;
 				this.body.setAngularVelocity(0);
 				this.body.setLinearVelocity({x: 0, y: 0});
 			})
