@@ -16,6 +16,7 @@ export class Player extends Line {
 	body: Body
 	speed: number
 	actionFlipFlop = false;
+	cooldown = 60;
 	health = 100;
 	xp = 0;
 
@@ -57,7 +58,7 @@ export class Player extends Line {
 		}
 
 
-		this.color = new Float32Array([1.0, 1.0, 0.0, 1.0]);
+
 
 
 		this.eventSystem.listen(Topic.PlayerControlEvent, data => {
@@ -101,6 +102,15 @@ export class Player extends Line {
 
 			if (this.keys.action && this.actionFlipFlop) {
 				this.actionFlipFlop = false;
+				if (60 / this.level < this.cooldown) {
+					this.cooldown = 0;
+				}
+			}
+
+			if (this.keys.action && this.cooldown === 0) {
+				if (this.cooldown >= (60 / this.level)) {
+					this.cooldown = 0;
+				}
 				const bullet = new Bullet();
 				bullet.transform = mat4.copy(this.transform);
 
@@ -127,10 +137,26 @@ export class Player extends Line {
 				this.parent.addChild(bullet);
 			} else if (!this.keys.action) {
 				this.actionFlipFlop = true;
+				//this.cooldown = 0;
 			}
+
+
+			this.cooldown++
+
+			if (this.keys.action) {
+				if (this.cooldown >= (60 / this.level) || this.cooldown < 0) {
+					this.cooldown = 0;
+				}
+			}
+
 
 			this.speed = Vec2.lengthOf(this.body.getLinearVelocity());
 		}
+	}
+
+	isCoolDown() {
+		console.log(60 / this.level)
+		return (60 / this.level) === this.cooldown;
 	}
 
 	serialize(): any {
@@ -210,5 +236,29 @@ export class Player extends Line {
 
 	get maxHealth() {
 		return 100 + (this.level - 1) * 25;
+	}
+
+	setColor(userid: number) {
+		const palate = [
+			[1.000, 0.250, 0.500, 1.0],
+			[0.250, 1.000, 0.500, 1.0],
+			[1.000, 1.000, 0.250, 1.0],
+			[0.750, 1.000, 1.000, 1.0],
+			[0.750, 0.250, 1.000, 1.0],
+			[0.250, 1.000, 0.250, 1.0],
+			[1.000, 0.500, 0.000, 1.0],
+			[0.020, 1.000, 1.000, 1.0],
+			[1.000, 0.000, 1.000, 1.0],
+			[0.500, 1.000, 0.000, 1.0],
+			[0.500, 1.000, 1.000, 1.0],
+			[1.000, 0.750, 0.000, 1.0],
+			[0.750, 0.000, 1.000, 1.0],
+			[0.000, 1.000, 0.750, 1.0],
+			[1.000, 0.000, 0.000, 1.0],
+			[0.000, 1.000, 0.000, 1.0]
+		];
+
+
+		this.color = new Float32Array(palate.at(userid % 16));
 	}
 }

@@ -88,6 +88,8 @@ export class Astro extends Node {
 			const newPlayer = new Player();
 			newPlayer.userid = userid
 			newPlayer.transform = mat4.translate(newPlayer.transform, vec3.fromValues(Math.random() * 10 - 5, Math.random() * 10 - 5))
+			// @ts-ignore
+			newPlayer.setColor(userid)
 			this.addChild(newPlayer);
 		});
 
