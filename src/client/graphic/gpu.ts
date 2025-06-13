@@ -5,6 +5,8 @@ import {LinePass} from "./line/line-pass";
 import {Camera} from "./camera";
 import {Player} from "../../shared/astro/player";
 import {Astro} from "../../shared/astro/astro";
+import {Poly} from "../../shared/node/2D/poly";
+import {PolyPass} from "./poly/poly-pass";
 
 export let device: GPUDevice
 export let context: GPUCanvasContext
@@ -14,6 +16,7 @@ export class GPU {
 
 	eventSystem = inject(EventSystem);
 	lines: LinePass = new LinePass();
+	polys: PolyPass = new PolyPass();
 	camera: Camera;
 	astro: Astro;
 
@@ -28,10 +31,14 @@ export class GPU {
 			if (node instanceof Line) {
 				this.lines.add(node as Line);
 			}
+			if (node instanceof Poly) {
+				this.polys.add(node as Poly);
+			}
 		});
 
 		this.eventSystem.listen(Topic.NodeDestroy, data => {
 			this.lines.remove(data.id);
+			this.polys.remove(data.id);
 		});
 
 	}
@@ -48,7 +55,12 @@ export class GPU {
 			}
 		} finally {
 			if (!device) {
-				document.body.textContent = 'No GPU available 😔';
+				document.body.innerHTML = '' +
+					'<div style="padding: 0 16px">' +
+						'<h1>No GPU available 😔</h1>' +
+						'<p>You need a WebGPU compatible browser</p>' +
+						'<a style="color: brown" href="https://caniuse.com/webgpu">https://caniuse.com/webgpu</a>' +
+					'</div> ';
 			}
 		}
 
@@ -61,6 +73,7 @@ export class GPU {
 		});
 
 		this.lines.init();
+		this.polys.init();
 	}
 
 	setCanvasSize = () => {
@@ -78,6 +91,7 @@ export class GPU {
 	update() {
 		if (this.camera) {
 			this.lines.update(this.camera);
+			this.polys.update(this.camera);
 		}
 	}
 

@@ -7,9 +7,10 @@ import {Body, Math, Polygon, Vec2} from "planck";
 import {Bullet} from "./bullet";
 import {Node} from "../node/node";
 import {Item} from "./item";
+import {Poly} from "../node/2D/poly";
 
 
-export class Player extends Line {
+export class Player extends Poly {
 
 	keys: Control = {}
 	userid: string
@@ -28,11 +29,8 @@ export class Player extends Line {
 
 		this.vertices = new Float32Array([
 			0.0, h,
-			w, -h,
-			w, -h,
 			-w, -h,
-			-w, -h,
-			0.0, h
+			w, -h,
 		]);
 
 		if (isServer) {

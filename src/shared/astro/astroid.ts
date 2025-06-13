@@ -1,10 +1,10 @@
-import {Line} from "../node/2D/line";
 import {isServer, world} from "./astro";
 import {Body, Math, Polygon} from "planck";
 import {Topic} from "../event-system";
 import {Item} from "./item";
+import {Poly} from "../node/2D/poly";
 
-export class Astroid extends Line {
+export class Astroid extends Poly {
 
 	body: Body
 	health: number;
@@ -25,11 +25,8 @@ export class Astroid extends Line {
 
 			this.vertices = new Float32Array([
 				0.0, h,
-				w, -h,
-				w, -h,
 				-w, -h,
-				-w, -h,
-				0.0, h,
+				w, -h
 			]);
 
 			this.body = world.createBody({
@@ -55,7 +52,7 @@ export class Astroid extends Line {
 			this.body.setUserData(this);
 
 
-			this.color = new Float32Array([1.0, 1.0, 1.0, 1.0]);
+			this.color = new Float32Array([0.5, 0.5, 0.5, 1.0]);
 		}
 	}
 

@@ -1,9 +1,10 @@
 import {Line} from "../node/2D/line";
 import {isServer, world} from "./astro";
 import {Body, Polygon} from "planck";
+import {Poly} from "../node/2D/poly";
 
 
-export class Bullet extends Line {
+export class Bullet extends Poly {
 
 	body: Body
 	damageMultiplier = 5;
@@ -16,11 +17,8 @@ export class Bullet extends Line {
 
 		this.vertices = new Float32Array([
 			0.0, h,
-			w, -h,
-			w, -h,
 			-w, -h,
-			-w, -h,
-			0.0, h,
+			w, -h
 		]);
 
 		if (isServer) {

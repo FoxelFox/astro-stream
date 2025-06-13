@@ -2,9 +2,10 @@ import {Line} from "../node/2D/line";
 import {isServer, world} from "./astro";
 import {Body, Math, Polygon} from "planck";
 import {Player} from "./player";
+import {Poly} from "../node/2D/poly";
 
 
-export class Item extends Line {
+export class Item extends Poly {
 
 	body: Body
 	lastUser: Player;
@@ -22,10 +23,8 @@ export class Item extends Line {
 		this.vertices = new Float32Array([
 			w, h,
 			w, -h,
-			w, -h,
 			-w, -h,
 			-w, -h,
-			-w, h,
 			-w, h,
 			w, h
 		]);
