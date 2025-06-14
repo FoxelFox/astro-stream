@@ -20,6 +20,7 @@ export class Player extends Poly {
 	cooldown = 60;
 	health = 100;
 	xp = 0;
+	force = 0.00015;
 
 
 	constructor() {
@@ -39,7 +40,7 @@ export class Player extends Poly {
 				position: {x: 0, y: 0},
 				allowSleep: false,
 				angularDamping: 0.01,
-				linearDamping: 0.0005
+				linearDamping: 0.002
 			});
 
 			this.body.createFixture({
@@ -55,10 +56,6 @@ export class Player extends Poly {
 			this.body.setUserData(this);
 		}
 
-
-
-
-
 		this.eventSystem.listen(Topic.PlayerControlEvent, data => {
 			if (data.userid === this.userid) {
 				this.keys = data.control;
@@ -71,13 +68,12 @@ export class Player extends Poly {
 		if (isServer) {
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
 
-			const f = 0.00005;
 			if (this.keys.forward) {
 				const rad = this.body.getAngle();
 				const cosTheta = Math.cos(rad)
 				const sinTheta = Math.sin(rad)
 
-				this.body.applyForceToCenter({x: -f * sinTheta, y: f * cosTheta}, true);
+				this.body.applyForceToCenter({x: -this.force * sinTheta, y: this.force * cosTheta}, true);
 			}
 
 			if (this.keys.backward) {
