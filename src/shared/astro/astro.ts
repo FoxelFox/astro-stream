@@ -75,21 +75,20 @@ export class Astro extends Node {
 				bullet.transform = new Float32Array(data.transform);
 				this.addChild(bullet);
 			});
-
-
 		}
 
 		this.eventSystem.listen(Topic.NodeDestroy, data => {
 			this.removeChildByID(data.id);
 		});
 
-		this.eventSystem.listen(Topic.PlayerConnected, userid => {
-			console.log("Player Connected", userid);
+		this.eventSystem.listen(Topic.PlayerConnected, data => {
+			console.log("Player Connected", data.userid);
 			const newPlayer = new Player();
-			newPlayer.userid = userid
+			newPlayer.userid = data.userid
+			newPlayer.username = data.username;
 			newPlayer.transform = mat4.translate(newPlayer.transform, vec3.fromValues(Math.random() * 10 - 5, Math.random() * 10 - 5))
 			// @ts-ignore
-			newPlayer.setColor(userid)
+			newPlayer.setColor(data.userid)
 			this.addChild(newPlayer);
 		});
 

@@ -13,6 +13,7 @@ export class Player extends Poly {
 
 	keys: Control = {}
 	userid: string
+	username: string
 	body: Body
 	speed: number
 	actionFlipFlop = false;
@@ -162,6 +163,7 @@ export class Player extends Poly {
 		const o = super.serialize();
 		o.userid = this.userid;
 		o.velocity = this.speed;
+		o.username = this.username;
 		return o;
 	}
 
@@ -169,6 +171,7 @@ export class Player extends Poly {
 		const o = super.deserialize(json) as Player;
 		o.userid = json.userid;
 		o.speed = json.velocity;
+		o.username = json.username;
 		return o;
 	}
 

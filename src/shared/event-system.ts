@@ -17,6 +17,7 @@ export enum Topic {
 	BulletSpawn,
 	AstroidSpawn,
 	ItemSpawn,
+	SetUserName,
 }
 
 export interface TopicDataMap {
@@ -25,7 +26,7 @@ export interface TopicDataMap {
 	[Topic.NodeDestroy]: {id: number, type: string}
 	[Topic.NodeCreate]: Node
 	[Topic.ReceiveUserId]: {userid: string}
-	[Topic.PlayerConnected]: string
+	[Topic.PlayerConnected]: {userid: string, username: string}
 	[Topic.PlayerDisconnected]: string
 	[Topic.CanvasResize]: { width: number; height: number }
 	[Topic.ClientControlEvent]: Control
@@ -33,6 +34,7 @@ export interface TopicDataMap {
 	[Topic.BulletSpawn]: {id: number, transform: number[]}
 	[Topic.AstroidSpawn]: {id: number, json: any}
 	[Topic.ItemSpawn]: {id: number, json: any}
+	[Topic.SetUserName]: string
 }
 
 

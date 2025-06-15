@@ -4,7 +4,7 @@ import {inject} from "../shared/injector";
 import * as path from "node:path";
 import {Astro} from "../shared/astro/astro";
 import {Node} from "../shared/node/node";
-import {Update, UpdateEvent} from "../shared/proto/generated/update";
+import {UpdateEvent} from "../shared/proto/generated/update";
 
 const publicDir = path.resolve(import.meta.dir, '../../dist');
 let idCounter = 0;
@@ -16,11 +16,11 @@ class Backend {
 
 	connections: {[id: string]: ServerWebSocket<unknown>} = {};
 
-	userConnected(ws: ServerWebSocket<unknown>): string {
+	userConnected(ws: ServerWebSocket<unknown>, username: string): string {
 
 		const userid = (++idCounter).toString();
 		this.connections[userid] = ws;
-		this.eventSystem.publish(Topic.PlayerConnected, userid);
+		this.eventSystem.publish(Topic.PlayerConnected, {userid, username});
 		ws.send(JSON.stringify({
 			topic: Topic.Sync,
 			message: {
@@ -117,7 +117,8 @@ backend.main().then(() => {
 				ws.subscribe('update');
 				ws.subscribe('userid');
 
-				ws.data = backend.userConnected(ws);
+				console.log('connected');
+
 
 			},
 			message(ws, ev: string) {
@@ -129,6 +130,9 @@ backend.main().then(() => {
 							userid: ws.data as string,
 							control: e.message
 						});
+						break;
+					case Topic.SetUserName:
+						ws.data = backend.userConnected(ws, e.message as string);
 						break;
 				}
 			},
@@ -147,7 +151,8 @@ backend.main().then(() => {
 		Topic.BulletSpawn,
 		Topic.AstroidSpawn,
 		Topic.ItemSpawn,
-		Topic.NodeDestroy
+		Topic.NodeDestroy,
+		Topic.SetUserName
 	];
 	for (const topic of networkEvents) {
 		eventSystem.listen(topic, (data) => {

@@ -1,6 +1,7 @@
 
 import "./ux/main-ux"
 import "./ux/progress-bar"
+import "./ux/leader-board"
 
 import {EventSystem, Topic} from "../shared/event-system";
 import {inject} from "../shared/injector";
@@ -11,6 +12,9 @@ import {Node} from "../shared/node/node";
 import {Astro} from "../shared/astro/astro";
 import {Sound} from "./audio/sound";
 import {Update, UpdateEvent} from "../shared/proto/generated/update";
+import {theWindow} from "tone/build/esm/core/context/AudioContext";
+import {Player} from "../shared/astro/player";
+import {Camera} from "./graphic/camera";
 
 
 const url = location.hostname === 'localhost' ? 'ws://localhost:3001' : `wss://ws.${location.hostname}`;
@@ -30,7 +34,7 @@ await gameContext.gpu.init();
 
 
 
-export function spawn(): Promise<GameContext> {
+export function spawn(username: string): Promise<GameContext> {
 	return new Promise(async (resolve) => {
 		const {Sound} = await import("./audio/sound")
 		gameContext.sound = new Sound();
@@ -49,6 +53,11 @@ export function spawn(): Promise<GameContext> {
 				});
 			}
 
+			eventSystem.listen(Topic.ReceiveUserId, data => {
+				const myPlayer = gameContext.game.getChildren(Player).find(p => p.userid == data.userid);
+				myPlayer.username = username;
+			});
+
 			resolve(gameContext);
 		});
 
@@ -60,6 +69,7 @@ export function spawn(): Promise<GameContext> {
 
 		socket.onopen = (ev) => {
 			console.log('connected')
+			socket.send(JSON.stringify({topic: Topic.SetUserName, message: username}))
 		}
 
 		socket.onmessage = async (ev) => {
@@ -72,6 +82,8 @@ export function spawn(): Promise<GameContext> {
 				eventSystem.publish(decoded.topic, decoded.message);
 			}
 		}
+
+
 
 		function loop() {
 			gameContext.gpu.update();

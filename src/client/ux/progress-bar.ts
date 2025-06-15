@@ -4,13 +4,10 @@ import {customElement, property} from 'lit/decorators.js';
 @customElement("progress-bar")
 export class MainUx extends LitElement {
 
-
-
 	@property() value: number;
 	@property() left: string;
 	@property() right: string;
 	@property() color: string;
-
 
 	render() {
 		return html`
@@ -18,6 +15,7 @@ export class MainUx extends LitElement {
 				.base {
 					box-shadow:inset 0 0 0 1px gray;
 					background-color: rgba(64, 64, 64, 0.1);
+					backdrop-filter: blur(8px);
 					width: 100%;
 					height: 34px;
 					overflow: hidden;
