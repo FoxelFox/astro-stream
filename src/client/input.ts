@@ -34,6 +34,8 @@ export class Input {
 			const y = window.innerHeight / 2 - ev.clientY;
 
 			this.control.rotation = this.keepInRange(Math.atan2(y, x) + Math.PI / 2);
+			this.control.mx = x;
+			this.control.my = y;
 			this.eventSystem.publish(Topic.ClientControlEvent, this.control);
 		}
 
@@ -41,8 +43,12 @@ export class Input {
 		const handleClick = (ev: MouseEvent, isDown) => {
 
 			switch (ev.button) {
-				case 0: this.control.action = isDown; break;
-				case 2: this.control.forward = isDown; break;
+				case 0:
+					this.control.action = isDown;
+					break;
+				case 2:
+					this.control.forward = isDown;
+					break;
 			}
 
 			this.eventSystem.publish(Topic.ClientControlEvent, this.control);

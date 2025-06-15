@@ -1,7 +1,6 @@
-import {Line} from "../node/2D/line";
 import {Control} from "../control";
 import {Topic} from "../event-system";
-import {mat4, vec2} from "wgpu-matrix";
+import {mat4} from "wgpu-matrix";
 import {isServer, world} from "./astro";
 import {Body, Math, Polygon, Vec2} from "planck";
 import {Bullet} from "./bullet";
@@ -39,7 +38,7 @@ export class Player extends Poly {
 				type: "dynamic",
 				position: {x: 0, y: 0},
 				allowSleep: false,
-				angularDamping: 0.01,
+				angularDamping: 0.02,
 				linearDamping: 0.002
 			});
 
@@ -63,17 +62,28 @@ export class Player extends Poly {
 		});
 	}
 
+	get level(): number {
+		return Math.floor(Math.pow(this.xp / 100, 2 / 3)) + 1;
+	}
+
+	get maxHealth() {
+		return 100 + (this.level - 1) * 25;
+	}
+
 	update() {
 		super.update();
 		if (isServer) {
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
 
-			if (this.keys.forward) {
+			const boost = Math.max(0, Math.min(1, (new Vec2(this.keys.mx, this.keys.my).length() - 50) / 200));
+
+			if (!this.keys.forward) {
 				const rad = this.body.getAngle();
 				const cosTheta = Math.cos(rad)
 				const sinTheta = Math.sin(rad)
+				const f = this.force * boost
 
-				this.body.applyForceToCenter({x: -this.force * sinTheta, y: this.force * cosTheta}, true);
+				this.body.applyForceToCenter({x: -f * sinTheta, y: f * cosTheta}, true);
 			}
 
 			if (this.keys.backward) {
@@ -88,7 +98,7 @@ export class Player extends Poly {
 
 			if (this.keys.rotation !== undefined) {
 
-				this.body.applyTorque(0.00005 * shortestAngle, true);
+				this.body.applyTorque(0.00015 * shortestAngle, true);
 			}
 
 
@@ -148,11 +158,6 @@ export class Player extends Poly {
 		}
 	}
 
-	isCoolDown() {
-		console.log(60 / this.level)
-		return (60 / this.level) === this.cooldown;
-	}
-
 	serialize(): any {
 		const o = super.serialize();
 		o.userid = this.userid;
@@ -183,12 +188,12 @@ export class Player extends Poly {
 
 					// TODO Duplicate Code
 					const item = new Item(
-						this.body.getPosition().x + (Math.random() -0.5) * 10,
-						this.body.getPosition().y + (Math.random() -0.5) * 10
+						this.body.getPosition().x + (Math.random() - 0.5) * 10,
+						this.body.getPosition().y + (Math.random() - 0.5) * 10
 					)
 
 					item.body.setLinearVelocity(this.body.getLinearVelocity().clone().mul(0.025));
-					item.body.setAngularVelocity(this.body.getAngularVelocity() + (Math.random() -0.5) * 0.0005);
+					item.body.setAngularVelocity(this.body.getAngularVelocity() + (Math.random() - 0.5) * 0.0005);
 					item.applyTransform(item.body.getPosition(), this.body.getAngle());
 
 					this.parent.addChild(item);
@@ -209,14 +214,6 @@ export class Player extends Poly {
 		this.health = Math.min(this.health + hp, this.maxHealth);
 	}
 
-	get level(): number {
-		return Math.floor(Math.pow(this.xp / 100, 2 / 3)) + 1;
-	}
-
-	private getXpForLevel(level: number): number {
-		return Math.ceil(100 * Math.pow(level - 1, 1.5));
-	}
-
 	getCurrentLevelXpRange(): { current: number; start: number; end: number } {
 		const startXP = this.getXpForLevel(this.level);
 		const endXP = this.getXpForLevel(this.level + 1);
@@ -226,10 +223,6 @@ export class Player extends Poly {
 			start: startXP,
 			end: endXP,
 		};
-	}
-
-	get maxHealth() {
-		return 100 + (this.level - 1) * 25;
 	}
 
 	setColor(userid: number) {
@@ -254,5 +247,9 @@ export class Player extends Poly {
 
 
 		this.color = new Float32Array(palate.at(userid % 16));
+	}
+
+	private getXpForLevel(level: number): number {
+		return Math.ceil(100 * Math.pow(level - 1, 1.5));
 	}
 }
