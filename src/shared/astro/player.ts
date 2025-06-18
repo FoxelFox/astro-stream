@@ -76,7 +76,7 @@ export class Player extends Poly {
 		if (isServer) {
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
 
-			const boost = Math.max(0, Math.min(1, (new Vec2(this.keys.mx, this.keys.my).length() - 25) / 200));
+			const boost = Math.max(0, Math.min(1, (new Vec2(this.keys.mx, this.keys.my).length() - 5) / 150));
 
 			if (!this.keys.forward) {
 				const rad = this.body.getAngle();

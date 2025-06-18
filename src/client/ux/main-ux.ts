@@ -19,10 +19,11 @@ export class MainUx extends LitElement {
 	@property() xp: number
 	@property() xpPercent: number = 0
 	@property() level: number
-	@property() username: string = ''
+	@property() username: string = localStorage.getItem('username') || ''
 
 
 	async startGame() {
+		localStorage.setItem('username', this.username);
 		this.isLoggedIn = true;
 		this.context = await spawn(this.username);
 
@@ -46,12 +47,8 @@ export class MainUx extends LitElement {
 		},16)
 	}
 
-
-
 	render() {
-
 		return html`
-			
 			<style>
 				input {
 					padding: 6px 12px;

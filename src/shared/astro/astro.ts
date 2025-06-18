@@ -41,17 +41,17 @@ export class Astro extends Node {
 				}
 
 				const astroids = this.getChildren(Astroid);
-				for (let i = 0; i < astroids.length; ++i) {
+				for (let i = 0; i < update.astroids.length; ++i) {
 					astroids[i].applyTransform(update.astroids[i].position, update.astroids[i].rotation);
 				}
 
 				const bullets = this.getChildren(Bullet);
-				for (let i = 0; i < bullets.length; ++i) {
+				for (let i = 0; i < update.bullets.length; ++i) {
 					bullets[i].applyTransform(update.bullets[i].position, update.bullets[i].rotation);
 				}
 
 				const items = this.getChildren(Item);
-				for (let i = 0; i < items.length; ++i) {
+				for (let i = 0; i < update.items.length; ++i) {
 					items[i].applyTransform(update.items[i].position, update.items[i].rotation);
 				}
 
@@ -261,10 +261,11 @@ export class Astro extends Node {
 	}
 
 	update() {
+		super.update();
 		if (isServer) {
 			world.step(16);
 		}
-		super.update();
+
 		if (isClient) {
 			// update camera
 		}

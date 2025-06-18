@@ -15,6 +15,8 @@ export class Sound {
 	engineSound
 	filter
 	lfo
+	ricochetSynth: Tone.Synth
+	bulletSynth: Tone.Synth
 
 	constructor() {
 		// Master Volume, um Clipping zu vermeiden und globale Kontrolle zu haben
@@ -49,29 +51,25 @@ export class Sound {
 		this.lfo.connect(this.filter.frequency); // LFO moduliert die Cutoff-Frequenz des Filters
 
 		this.eventSystem.listen(Topic.BulletSpawn, data => {
-			const synth = new Tone.Synth({
-				oscillator: { type: 'triangle' },
-				envelope: { attack: 0.02, decay: 0.5, sustain: 0, release: 0.2 },
-				volume: -20
-			}).toDestination();
+			if (!this.bulletSynth) {
+				this.bulletSynth = new Tone.Synth({
+					oscillator: { type: 'triangle' },
+					envelope: { attack: 0.02, decay: 0.5, sustain: 0, release: 0.2 },
+					volume: -20
+				}).toDestination();
 
-			// The LFO creates the "wobble" effect on the pitch.
-			const lfo = new Tone.LFO({
-				frequency: "1hz",
-				type: "sine",
-				min: -100, // Cents to detune down
-				max: 100   // Cents to detune up
-			}).start();
+				// The LFO creates the "wobble" effect on the pitch.
+				const lfo = new Tone.LFO({
+					frequency: "1hz",
+					type: "sine",
+					min: -100, // Cents to detune down
+					max: 100   // Cents to detune up
+				}).start();
 
-			lfo.connect(synth.detune);
+				lfo.connect(this.bulletSynth.detune);
+			}
 
-			synth.triggerAttackRelease('F3', '0.5n');
-
-			// Stop and dispose of the LFO and synth to clean up.
-			setTimeout(() => {
-				lfo.stop().dispose();
-				synth.dispose();
-			}, 800);
+			this.bulletSynth.triggerAttackRelease('F3', '0.5n');
 		});
 
 		this.eventSystem.listen(Topic.NodeDestroy, data => {
@@ -162,17 +160,19 @@ export class Sound {
 	}
 
 	playRicochetSound() {
-		const synth = new Tone.Synth({
-			oscillator: { type: 'square' },
-			envelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.1 },
-			volume: -40
-		}).toDestination();
+		if (!this.ricochetSynth) {
+			this.ricochetSynth = new Tone.Synth({
+				oscillator: { type: 'square' },
+				envelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.1 },
+				volume: -40
+			}).toDestination();
+		}
+
 		const now = Tone.now();
-		// Create a rapid up-and-down pitch change for the "zing"
-		synth.triggerAttack('G5', now);
-		synth.frequency.linearRampTo('E6', now + 0.05);
-		synth.frequency.linearRampTo('A4', now + 0.1);
-		setTimeout(() => synth.dispose(), 500);
+		this.ricochetSynth.triggerAttack('G5', now);
+		this.ricochetSynth.frequency.linearRampTo('E6', now + 0.05);
+		this.ricochetSynth.frequency.linearRampTo('A4', now + 0.1);
+		//setTimeout(() => this.ricochetSynth.triggerRelease(), 500);
 	}
 
 	playExplosionSound() {
