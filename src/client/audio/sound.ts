@@ -168,10 +168,15 @@ export class Sound {
 			}).toDestination();
 		}
 
-		const now = Tone.now();
-		this.ricochetSynth.triggerAttack('G5', now);
-		this.ricochetSynth.frequency.linearRampTo('E6', now + 0.05);
-		this.ricochetSynth.frequency.linearRampTo('A4', now + 0.1);
+		try {
+			const now = Tone.now();
+			this.ricochetSynth.triggerAttack('G5', now);
+			this.ricochetSynth.frequency.linearRampTo('E6', now + 0.05);
+			this.ricochetSynth.frequency.linearRampTo('A4', now + 0.1);
+		} catch (e) {
+			// fuck it
+		}
+
 		//setTimeout(() => this.ricochetSynth.triggerRelease(), 500);
 	}
 
