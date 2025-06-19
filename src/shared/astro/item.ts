@@ -10,6 +10,7 @@ export class Item extends Poly {
 	body: Body
 	lastUser: Player;
 	damageMultiplier = 0;
+	lifetime: number = 60 * 60;
 
 	constructor(
 		x: number = (Math.random() - 0.5) * 350,
@@ -32,6 +33,7 @@ export class Item extends Poly {
 		if (isServer) {
 			this.body = world.createBody({
 				type: "dynamic",
+				linearDamping: 0.001,
 				position: {
 					x,
 					y
@@ -40,7 +42,7 @@ export class Item extends Poly {
 
 			this.body.createFixture({
 				density: 0.1,
-				restitution: 0.0,
+				restitution: 0.1,
 				shape: new Polygon([
 					{x: w, y: h},
 					{x: w, y: -h},
@@ -62,12 +64,18 @@ export class Item extends Poly {
 			if (this.lastUser) {
 				this.lastUser.heal(25);
 				this.lastUser.xp += 25;
-				this.destroy();
+				return this.destroy();
 			}
 
 			const pos = this.body.getPosition();
 			if (Math.abs(pos.x) > 200 || Math.abs(pos.y) > 200) {
-				this.destroy();
+				return this.destroy();
+			}
+
+			this.lifetime--;
+
+			if (this.lifetime <= 0) {
+				return this.destroy();
 			}
 
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());

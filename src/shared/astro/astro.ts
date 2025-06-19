@@ -2,7 +2,7 @@ import {Node} from "../node/node"
 import {Player} from "./player";
 import {Topic} from "../event-system";
 import {mat4, vec3} from "wgpu-matrix";
-import {Edge, Settings, World} from "planck";
+import {Edge, Settings, Vec2, World} from "planck";
 import {Astroid} from "./astroid";
 import {Bullet} from "./bullet";
 import {Update} from "../proto/generated/update";
@@ -41,17 +41,17 @@ export class Astro extends Node {
 				}
 
 				const astroids = this.getChildren(Astroid);
-				for (let i = 0; i < update.astroids.length; ++i) {
+				for (let i = 0; i < astroids.length; ++i) {
 					astroids[i].applyTransform(update.astroids[i].position, update.astroids[i].rotation);
 				}
 
 				const bullets = this.getChildren(Bullet);
-				for (let i = 0; i < update.bullets.length; ++i) {
+				for (let i = 0; i < bullets.length; ++i) {
 					bullets[i].applyTransform(update.bullets[i].position, update.bullets[i].rotation);
 				}
 
 				const items = this.getChildren(Item);
-				for (let i = 0; i < update.items.length; ++i) {
+				for (let i = 0; i < items.length; ++i) {
 					items[i].applyTransform(update.items[i].position, update.items[i].rotation);
 				}
 
@@ -193,10 +193,10 @@ export class Astro extends Node {
 			const b = contact.getFixtureB().getBody().getUserData() as { damageMultiplier?: number };
 
 			if (a instanceof Bullet) {
-				a.destroy();
+				a.destroyOnNextUpdate = true;
 			}
 			if (b instanceof Bullet) {
-				b.destroy();
+				b.destroyOnNextUpdate = true;
 			}
 
 			if (a instanceof Astroid) {
@@ -219,7 +219,7 @@ export class Astro extends Node {
 				if (b instanceof Player) {
 					a.lastUser = b;
 				} else {
-					a.destroy();
+					//a.destroyOnNextUpdate = true;
 				}
 			}
 
@@ -227,7 +227,7 @@ export class Astro extends Node {
 				if (a instanceof Player) {
 					b.lastUser = a;
 				} else {
-					b.destroy();
+					//b.destroyOnNextUpdate = true;
 				}
 			}
 		});
@@ -261,10 +261,10 @@ export class Astro extends Node {
 	}
 
 	update() {
-		super.update();
 		if (isServer) {
 			world.step(16);
 		}
+		super.update();
 
 		if (isClient) {
 			// update camera
@@ -275,6 +275,21 @@ export class Astro extends Node {
 			const astroids = this.getChildren(Astroid);
 			const bullets = this.getChildren(Bullet);
 			const items = this.getChildren(Item);
+
+			// push items to player
+			for (const item of items) {
+				const ip = item.body.getPosition();
+				const force = new Vec2();
+				for (const player of players) {
+					const pp = player.body.getPosition();
+
+					force.add(Vec2.sub(pp,ip).mul(0.0001 / Math.pow(Vec2.distance(ip, pp), 2)));
+
+				}
+
+				item.body.applyForceToCenter(force);
+			}
+
 
 			const update: Update = {
 				players: [],

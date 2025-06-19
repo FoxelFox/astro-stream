@@ -8,6 +8,7 @@ export class Bullet extends Poly {
 
 	body: Body
 	damageMultiplier = 5;
+	destroyOnNextUpdate = false;
 
 	constructor() {
 		super();
@@ -52,6 +53,9 @@ export class Bullet extends Poly {
 	update() {
 		super.update();
 		if (isServer) {
+			if (this.destroyOnNextUpdate) {
+				return this.destroy();
+			}
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
 		}
 	}
