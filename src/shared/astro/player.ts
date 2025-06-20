@@ -19,7 +19,7 @@ export class Player extends Poly {
 	actionFlipFlop = false;
 	cooldown = 60;
 	health = 100;
-	xp = 1000000;
+	xp = 0;
 	force = 0.00015;
 
 

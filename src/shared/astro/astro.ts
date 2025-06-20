@@ -2,10 +2,10 @@ import {Node} from "../node/node"
 import {Player} from "./player";
 import {Topic} from "../event-system";
 import {mat4, vec3} from "wgpu-matrix";
-import {Edge, Settings, Vec2, World} from "planck";
+import {Contact, Edge, Settings, Vec2, World} from "planck";
 import {Astroid} from "./astroid";
 import {Bullet} from "./bullet";
-import {Update} from "../proto/generated/update";
+import {Collision, Update} from "../proto/generated/update";
 import {deserialize} from "./deserialize";
 import {Line} from "../node/2D/line";
 import {Item} from "./item";
@@ -22,6 +22,7 @@ Settings.angularSleepTolerance = 0.01;
 
 export class Astro extends Node {
 
+	collisions: Collision[] = []
 
 	constructor() {
 		super();
@@ -55,6 +56,7 @@ export class Astro extends Node {
 					items[i].applyTransform(update.items[i].position, update.items[i].rotation);
 				}
 
+				this.collisions = update.collisions
 			});
 
 			this.eventSystem.listen(Topic.AstroidSpawn, data => {
@@ -187,10 +189,27 @@ export class Astro extends Node {
 
 		this.generateAstroids(10);
 
-		world.on('post-solve', (contact, impulse) => {
+		world.on('post-solve', (contact: Contact, impulse) => {
 
 			const a = contact.getFixtureA().getBody().getUserData() as { damageMultiplier?: number };
 			const b = contact.getFixtureB().getBody().getUserData() as { damageMultiplier?: number };
+
+			const worldManifold = contact.getWorldManifold(null);
+
+			if (worldManifold) {
+				for (let i = 0; i < worldManifold.points.length; i++) {
+					const point = worldManifold.points[i];
+					const normalImpulse = impulse.normalImpulses[i];
+
+					if (normalImpulse > 0.001) {
+						this.collisions.push({
+							x: point.x,
+							y: point.y,
+							f: normalImpulse
+						});
+					}
+				}
+			}
 
 			if (a instanceof Bullet) {
 				a.destroyOnNextUpdate = true;
@@ -295,7 +314,8 @@ export class Astro extends Node {
 				players: [],
 				astroids: [],
 				bullets: [],
-				items: []
+				items: [],
+				collisions: this.collisions
 			}
 
 			for (const player of players) {
@@ -334,6 +354,7 @@ export class Astro extends Node {
 			}
 
 			this.eventSystem.publish(Topic.Update, update);
+			this.collisions.length = 0;
 		}
 	}
 

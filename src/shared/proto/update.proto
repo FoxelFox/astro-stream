@@ -28,11 +28,18 @@ message Bullet {
 	float rotation = 2;
 }
 
+message Collision {
+	float x = 1;
+	float y = 2;
+	float f = 3;
+}
+
 message Update {
 	repeated Player players = 1;
 	repeated Astroid astroids = 2;
 	repeated Bullet bullets = 3;
 	repeated Item items = 4;
+	repeated Collision collisions = 5;
 }
 
 message UpdateEvent {

@@ -7,6 +7,7 @@ import {Player} from "../../shared/astro/player";
 import {Astro} from "../../shared/astro/astro";
 import {Poly} from "../../shared/node/2D/poly";
 import {PolyPass} from "./poly/poly-pass";
+import {Particle} from "./particle/particle";
 
 export let device: GPUDevice
 export let context: GPUCanvasContext
@@ -17,6 +18,7 @@ export class GPU {
 	eventSystem = inject(EventSystem);
 	lines: LinePass = new LinePass();
 	polys: PolyPass = new PolyPass();
+	particles: Particle = new Particle();
 	camera: Camera;
 	astro: Astro;
 
@@ -74,6 +76,7 @@ export class GPU {
 
 		this.lines.init();
 		this.polys.init();
+		this.particles.init();
 	}
 
 	setCanvasSize = () => {
@@ -92,6 +95,7 @@ export class GPU {
 		if (this.camera) {
 			this.lines.update(this.camera);
 			this.polys.update(this.camera);
+			this.particles.render(this.camera);
 		}
 	}
 

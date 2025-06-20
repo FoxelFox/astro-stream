@@ -176,8 +176,6 @@ export class Sound {
 		} catch (e) {
 			// fuck it
 		}
-
-		//setTimeout(() => this.ricochetSynth.triggerRelease(), 500);
 	}
 
 	playExplosionSound() {
