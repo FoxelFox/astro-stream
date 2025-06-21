@@ -80,6 +80,7 @@ export function spawn(username: string): Promise<GameContext> {
 				const ui8 = new Uint8Array(await ev.data.arrayBuffer());
 				const decoded = UpdateEvent.decode(ui8);
 				eventSystem.publish(decoded.topic, decoded.message);
+				loop();
 			}
 		}
 
@@ -89,10 +90,10 @@ export function spawn(username: string): Promise<GameContext> {
 			gameContext.gpu.update();
 			gameContext.sound.update();
 
-			requestAnimationFrame(loop);
+			//requestAnimationFrame(loop);
 		}
 
-		requestAnimationFrame(loop);
+		//requestAnimationFrame(loop);
 	})
 
 

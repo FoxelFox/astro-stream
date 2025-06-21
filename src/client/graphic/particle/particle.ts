@@ -3,6 +3,7 @@ import {inject} from "../../../shared/injector";
 import {context, device} from "../gpu";
 
 import shader from "./particle.wgsl" with {type: "text"};
+import compute from "./compute.wgsl" with {type: "text"};
 import {Camera} from "../camera";
 import {mat4} from "wgpu-matrix";
 import {quad} from "./quad";
@@ -21,6 +22,7 @@ export class Particle {
 	particleInstanceByteSize =
 		2 * 4 + // position
 		2 * 4 + // velocity
+		4 * 4 + // color
 		0;
 
 	numParticles = 1024 * 10;
@@ -47,10 +49,21 @@ export class Particle {
 			for (const collision of data.collisions) {
 				for (let i = 0; i < 10; i++) {
 					const instance = [
+						// position
 						collision.x,
 						collision.y,
-						Math.random() - 0.5,
-						Math.random() - 0.5
+
+						// velocity
+						(Math.random() - 0.5) * collision.f * 25,
+						(Math.random() - 0.5) * collision.f * 25,
+
+						// color
+						1.0 + (Math.random() - 0.5) * 0.75, // r
+						0.8 + (Math.random() - 0.5) * 0.75, // g
+						0.4 + (Math.random() - 0.5) * 0.75, // b
+
+						// live time and alpha
+						2.0
 					];
 					buffer.set(instance, offset);
 					offset += instance.length;
@@ -70,14 +83,14 @@ export class Particle {
 
 	init() {
 
-		this.quad = quad(0.1);
+		this.quad = quad(0.25);
 
 		this.computePipeline = device.createComputePipeline({
 			label: 'Particle Compute Pipeline',
 			layout: 'auto',
 			compute: {
 				module: device.createShaderModule({
-					code: shader
+					code: compute
 				}),
 				entryPoint: 'compute_main',
 			}
@@ -100,7 +113,7 @@ export class Particle {
 						offset: 0
 					}]
 				}, {
-					arrayStride: 4 * 4,
+					arrayStride: 8 * 4,
 					stepMode: "instance",
 					attributes: [{
 						// position
@@ -112,6 +125,11 @@ export class Particle {
 						shaderLocation: 2,
 						offset: 2 * 4,
 						format: "float32x2"
+					}, {
+						// color
+						shaderLocation: 3,
+						offset: 4 * 4,
+						format: "float32x4"
 					}]
 				}]
 			},
@@ -122,7 +140,18 @@ export class Particle {
 				entryPoint: 'fragment_main',
 				targets: [{
 					format: navigator.gpu.getPreferredCanvasFormat(),
-
+					blend: {
+						color: {
+							srcFactor: 'src-alpha',
+							dstFactor: 'one',
+							operation: 'add',
+						},
+						alpha: {
+							srcFactor: 'zero',
+							dstFactor: 'one',
+							operation: 'add',
+						},
+					},
 				}],
 			},
 			primitive: {
@@ -145,6 +174,7 @@ export class Particle {
 
 		for (let i = 0; i < 2; ++i) {
 			this.particleBindGroups[i] = device.createBindGroup({
+				label: 'Compute bind group particles',
 				layout: this.computePipeline.getBindGroupLayout(0),
 				entries: [{
 					binding: 0,
@@ -182,7 +212,8 @@ export class Particle {
 
 		if (recreateUniform) {
 			this.uniformBindGroup = device.createBindGroup({
-				layout: this.pipeline.getBindGroupLayout(1),
+				label: 'Camera Uniform',
+				layout: this.pipeline.getBindGroupLayout(0),
 				entries: [{
 					binding: 0,
 					resource: {buffer: this.cameraUniformBuffer}
@@ -213,18 +244,18 @@ export class Particle {
 			passEncoder.dispatchWorkgroups(Math.ceil(this.numParticles / 64));
 			passEncoder.end();
 		}
-
+		this.t++;
 		{
 			const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
 			passEncoder.setPipeline(this.pipeline);
-			passEncoder.setBindGroup(1, this.uniformBindGroup);
+			passEncoder.setBindGroup(0, this.uniformBindGroup);
 			passEncoder.setVertexBuffer(0, this.quad);
-			passEncoder.setVertexBuffer(1, this.particleBuffers[(this.t + 1) % 2]);
+			passEncoder.setVertexBuffer(1, this.particleBuffers[this.t % 2]);
 			passEncoder.draw(6, this.numParticles, 0, 0);
 			passEncoder.end()
 		}
 
-		this.t++;
+
 		device.queue.submit([commandEncoder.finish()]);
 	}
 }
