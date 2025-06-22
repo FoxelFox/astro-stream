@@ -51,7 +51,7 @@ export class Item extends Poly {
 				])
 			})
 
-
+			this.body.setSleepingAllowed(false);
 			this.body.setUserData(this);
 		}
 

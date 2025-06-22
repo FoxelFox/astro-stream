@@ -51,7 +51,12 @@ export class Astroid extends Poly {
 			this.body.setUserData(this);
 
 
-			this.color = new Float32Array([0.5, 0.5, 0.5, 1.0]);
+			this.color = new Float32Array([
+				0.5 + (Math.random() - 0.5) * 0.5,
+				0.5 + (Math.random() - 0.5) * 0.5,
+				0.5 + (Math.random() - 0.5) * 0.5,
+				1.0
+			]);
 		}
 	}
 

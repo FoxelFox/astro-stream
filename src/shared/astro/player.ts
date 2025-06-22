@@ -117,6 +117,8 @@ export class Player extends Poly {
 					this.cooldown = 0;
 				}
 				const bullet = new Bullet();
+				// decrease damage on higher shoot frequency
+				bullet.damageMultiplier = 10/((this.level+9)/10);
 				bullet.transform = mat4.copy(this.transform);
 
 				// TODO fix this (mat4.rotate?)
