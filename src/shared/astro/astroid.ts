@@ -8,7 +8,6 @@ export class Astroid extends Poly {
 
 	body: Body
 	health: number;
-	damageMultiplier = 1;
 
 	constructor(
 		public level: number = 3,
@@ -16,7 +15,7 @@ export class Astroid extends Poly {
 		y: number = (Math.random() - 0.5) * 350
 	) {
 		super();
-		this.health = 50 * this.level;
+		this.health = 100 * this.level;
 
 		if (isServer) {
 

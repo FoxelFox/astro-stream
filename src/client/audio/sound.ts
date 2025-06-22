@@ -17,6 +17,10 @@ export class Sound {
 	lfo
 	ricochetSynth: Tone.Synth
 	bulletSynth: Tone.Synth
+	explosionSynth: {
+		boom: Tone.Synth,
+		debris: Tone.NoiseSynth
+	}
 
 	constructor() {
 		// Master Volume, um Clipping zu vermeiden und globale Kontrolle zu haben
@@ -179,37 +183,36 @@ export class Sound {
 	}
 
 	playExplosionSound() {
-		const now = Tone.now();
 
-		// The main BOOM, a low-pitched and distorted sine wave.
-		const boom = new Tone.MembraneSynth({
-			pitchDecay: 0.05,
-			octaves: 2,
-			volume: -30,
-			oscillator: { type: "sine" },
-			envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
-		}).toDestination();
-		const dist = new Tone.Distortion(0.18).toDestination();
-		boom.connect(dist);
+		if (!this.explosionSynth) {
+			this.explosionSynth = {
+				boom: new Tone.MembraneSynth({
+					pitchDecay: 0.05,
+					octaves: 2,
+					volume: -30,
+					oscillator: { type: "sine" },
+					envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+				}).toDestination(),
+				debris: new Tone.NoiseSynth({
+					noise: { type: "brown" },
+					volume: -30,
+					envelope: { attack: 0.05, decay: 0.5, sustain: 0 }
+				}).toDestination()
+			};
 
-		// The crackling debris, made with filtered noise.
-		const debris = new Tone.NoiseSynth({
-			noise: { type: "brown" },
-			volume: -30,
-			envelope: { attack: 0.05, decay: 0.5, sustain: 0 }
-		}).toDestination();
-		const filter = new Tone.AutoFilter("16n.").toDestination().start();
-		debris.connect(filter);
+			const dist = new Tone.Distortion(0.18).toDestination();
+			this.explosionSynth.boom.connect(dist);
 
-		boom.triggerAttackRelease("256n", "8n", now);
-		debris.triggerAttackRelease("8n", now + 0.1);
+			const filter = new Tone.AutoFilter("16n.").toDestination().start();
+			this.explosionSynth.debris.connect(filter);
+		}
 
-		setTimeout(() => {
-			boom.dispose();
-			debris.dispose();
-			dist.dispose();
-			filter.dispose();
-		}, 800);
+		try {
+			const now = Tone.now();
+			this.explosionSynth.boom.triggerAttackRelease("256n", "8n", now);
+			this.explosionSynth.debris.triggerAttackRelease("8n", now + 0.1);
+		} catch (e) {
+			// ignore it
+		}
 	}
-
 }

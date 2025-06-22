@@ -62,8 +62,8 @@ export class Item extends Poly {
 		super.update();
 		if (isServer) {
 			if (this.lastUser) {
-				this.lastUser.heal(25);
-				this.lastUser.xp += 25;
+				this.lastUser.heal(10);
+				this.lastUser.xp += 10;
 				return this.destroy();
 			}
 

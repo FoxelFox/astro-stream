@@ -8,7 +8,6 @@ export class LeaderBoard extends LitElement {
 	@property() self: string
 	@property() players: Player[];
 
-
 	render() {
 		return html`
 			<style>
@@ -49,5 +48,4 @@ export class LeaderBoard extends LitElement {
 			</div>
 		`
 	}
-
 }

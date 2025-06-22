@@ -7,7 +7,7 @@ import {Poly} from "../node/2D/poly";
 export class Bullet extends Poly {
 
 	body: Body
-	damageMultiplier = 5;
+	damageMultiplier = 10;
 	destroyOnNextUpdate = false;
 
 	constructor() {

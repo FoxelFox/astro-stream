@@ -1,4 +1,4 @@
-import {css, html, LitElement} from "lit";
+import {html, LitElement} from "lit";
 import {customElement, property} from 'lit/decorators.js';
 
 @customElement("progress-bar")

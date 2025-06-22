@@ -8,9 +8,8 @@ import {Astroid} from "../../shared/astro/astroid";
 export class MainUx extends LitElement {
 
 	context: GameContext
+
 	@property() isLoggedIn = false;
-
-
 	@property() playerCount: number
 	@property() players: Player[]
 	@property() astroids: number
@@ -92,7 +91,7 @@ export class MainUx extends LitElement {
 				? html`
 					<div style="padding: 16px; display: flex; justify-content: space-between">
 						
-						<div style="display: flex; gap: 8px">
+						<div style="display: flex; gap: 16px">
 							<leader-board .players="${this.players}"> </leader-board>
 							<div>
 								<div>🧑‍🚀 ${this.playerCount}</div>

@@ -318,7 +318,9 @@ export class Astro extends Node {
 				collisions: this.collisions
 			}
 
+			let accumulatedLevels = 0;
 			for (const player of players) {
+				accumulatedLevels += player.level;
 				update.players.push({
 					position: player.body.getPosition(),
 					rotation: player.body.getAngle(),
@@ -349,7 +351,7 @@ export class Astro extends Node {
 				});
 			}
 
-			if (this.getChildren(Astroid).length < 50) {
+			if (this.getChildren(Astroid).length < 50 + accumulatedLevels) {
 				this.generateAstroids(1);
 			}
 
