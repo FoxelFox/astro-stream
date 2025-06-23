@@ -10,7 +10,7 @@ export class Astroid extends Poly {
 	health: number;
 
 	constructor(
-		public level: number = 3,
+		public level: number = Math.round(Math.random() * 3 +  3),
 		x: number = (Math.random() - 0.5) * 350,
 		y: number = (Math.random() - 0.5) * 350
 	) {

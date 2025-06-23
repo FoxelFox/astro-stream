@@ -73,7 +73,11 @@ export class Sound {
 				lfo.connect(this.bulletSynth.detune);
 			}
 
-			this.bulletSynth.triggerAttackRelease('F3', '0.5n');
+			try {
+				this.bulletSynth.triggerAttackRelease('F3', '0.5n');
+			} catch (e) {
+				// ignore
+			}
 		});
 
 		this.eventSystem.listen(Topic.NodeDestroy, data => {

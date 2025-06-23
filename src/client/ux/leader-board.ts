@@ -30,6 +30,7 @@ export class LeaderBoard extends LitElement {
 					max-width: 150px;
 					overflow: hidden;
 					text-overflow: ellipsis;
+					white-space: nowrap;
 				}
 
 				h3 {

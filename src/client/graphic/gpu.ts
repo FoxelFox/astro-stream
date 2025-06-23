@@ -94,8 +94,8 @@ export class GPU {
 	update() {
 		if (this.camera) {
 			this.lines.update(this.camera);
-			this.polys.update(this.camera);
 			this.particles.render(this.camera);
+			this.polys.update(this.camera);
 		}
 	}
 
