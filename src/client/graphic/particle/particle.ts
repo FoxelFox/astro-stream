@@ -25,7 +25,7 @@ export class Particle {
 		4 * 4 + // color
 		0;
 
-	numParticles = 1024 * 10;
+	numParticles = 1024 * 50;
 	computePipeline: GPUComputePipeline
 	pipeline: GPURenderPipeline
 	particleBindGroups: GPUBindGroup[]

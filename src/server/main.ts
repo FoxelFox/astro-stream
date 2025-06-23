@@ -54,7 +54,7 @@ class Backend {
 		'/websocket': this.websocket
 	}
 
-	async main() {
+	main() {
 		this.game.init();
 
 		setInterval(() => {
@@ -65,103 +65,107 @@ class Backend {
 
 
 const backend = new Backend();
+backend.main();
 
-backend.main().then(() => {
-	Bun.serve({
-		async fetch(req) {
+Bun.serve({
+	async fetch(req) {
 
-			let requestedPath = new URL(req.url).pathname;
+		let requestedPath = new URL(req.url).pathname;
 
-			let p = requestedPath.split('/');
-			if (p[1] === "api") {
-				return backend.router[requestedPath]();
-			}
-
-
-			if (requestedPath === "/") {
-				requestedPath = "/index.html";
-			}
-			const safeSuffix = path.normalize(requestedPath).replace(/^(\.\.(\/|\\|$))+/, '');
-			const filePath = path.join(publicDir, safeSuffix);
-
-			const file = Bun.file(filePath);
-
-			if (await file.exists()) {
-				return new Response(
-					Bun.gzipSync(await file.arrayBuffer()),
-					{
-						headers: {
-							'Content-Type': file.type,
-							'Content-Encoding': 'gzip'
-						}
-					}
-				);
-			} else {
-				return new Response("404!")
-			}
-
-		},
-	});
-
-	const webSocketServer = Bun.serve({
-		port: 3001,
-		async fetch(req, server) {
-			// upgrade the request to a WebSocket
-			if (server.upgrade(req)) {
-				return; // do not return a Response
-			}
-			return new Response("Upgrade failed", { status: 500 });
-		},
-		websocket: {
-			open(ws) {
-				ws.subscribe('update');
-				ws.subscribe('userid');
-
-				console.log('connected');
-
-
-			},
-			message(ws, ev: string) {
-				const e: {topic: Topic, message: any} = JSON.parse(ev);
-
-				switch (e.topic) {
-					case Topic.ClientControlEvent:
-						eventSystem.publish(Topic.PlayerControlEvent, {
-							userid: ws.data as string,
-							control: e.message
-						});
-						break;
-					case Topic.SetUserName:
-						ws.data = backend.userConnected(ws, e.message as string);
-						break;
-				}
-			},
-			close(ws, code: number, reason: string) {
-				ws.unsubscribe('update');
-				backend.userDisconnected(ws);
-			}
+		let p = requestedPath.split('/');
+		if (p[1] === "api") {
+			return backend.router[requestedPath]();
 		}
+
+
+		if (requestedPath === "/") {
+			requestedPath = "/index.html";
+		}
+		const safeSuffix = path.normalize(requestedPath).replace(/^(\.\.(\/|\\|$))+/, '');
+		const filePath = path.join(publicDir, safeSuffix);
+
+		const file = Bun.file(filePath);
+
+		if (await file.exists()) {
+			return new Response(
+				Bun.gzipSync(await file.arrayBuffer()),
+				{
+					headers: {
+						'Content-Type': file.type,
+						'Content-Encoding': 'gzip'
+					}
+				}
+			);
+		} else {
+			return new Response("404!")
+		}
+
+	},
+});
+
+const webSocketServer = Bun.serve({
+	port: 3001,
+	async fetch(req, server) {
+		// upgrade the request to a WebSocket
+		if (server.upgrade(req)) {
+			return; // do not return a Response
+		}
+		return new Response("Upgrade failed", { status: 500 });
+	},
+	websocket: {
+		open(ws) {
+			ws.subscribe('update');
+			ws.subscribe('userid');
+
+			console.log('connected');
+
+
+		},
+		message(ws, ev: string) {
+			const e: {topic: Topic, message: any} = JSON.parse(ev);
+
+			switch (e.topic) {
+				case Topic.ClientControlEvent:
+					eventSystem.publish(Topic.PlayerControlEvent, {
+						userid: ws.data as string,
+						control: e.message
+					});
+					break;
+				case Topic.SetUserName:
+					ws.data = backend.userConnected(ws, e.message as string);
+					break;
+			}
+		},
+		close(ws, code: number, reason: string) {
+			ws.unsubscribe('update');
+			backend.userDisconnected(ws);
+		}
+	}
+});
+
+const eventSystem = inject(EventSystem);
+
+const networkEvents = [
+	Topic.PlayerConnected,
+	Topic.PlayerDisconnected,
+	Topic.BulletSpawn,
+	Topic.AstroidSpawn,
+	Topic.ItemSpawn,
+	Topic.NodeDestroy,
+	Topic.SetUserName
+];
+for (const topic of networkEvents) {
+	eventSystem.listen(topic, (data) => {
+		webSocketServer.publish('update', JSON.stringify({topic, message: data}),true);
 	});
+}
 
-	const eventSystem = inject(EventSystem);
+eventSystem.listen(Topic.Update, data => {
 
-	const networkEvents = [
-		Topic.PlayerConnected,
-		Topic.PlayerDisconnected,
-		Topic.BulletSpawn,
-		Topic.AstroidSpawn,
-		Topic.ItemSpawn,
-		Topic.NodeDestroy,
-		Topic.SetUserName
-	];
-	for (const topic of networkEvents) {
-		eventSystem.listen(topic, (data) => {
-			webSocketServer.publish('update', JSON.stringify({topic, message: data}),true);
-		});
+	try {
+		webSocketServer.publish('update', UpdateEvent.encode({topic: Topic.Update, message: data}).finish());
+	} catch (e) {
+		console.log(e)
 	}
 
-	eventSystem.listen(Topic.Update, data => {
-
-		webSocketServer.publish('update', UpdateEvent.encode({topic: Topic.Update, message: data}).finish());
-	});
 });

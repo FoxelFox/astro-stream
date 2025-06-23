@@ -276,7 +276,6 @@ export class Astro extends Node {
 
 			this.eventSystem.publish(Topic.AstroidSpawn, {id: newAstro.id, json: newAstro.serialize()})
 		}
-
 	}
 
 	update() {
@@ -301,9 +300,7 @@ export class Astro extends Node {
 				const force = new Vec2();
 				for (const player of players) {
 					const pp = player.body.getPosition();
-
 					force.add(Vec2.sub(pp,ip).mul(0.0001 / Math.pow(Vec2.distance(ip, pp), 2)));
-
 				}
 
 				item.body.applyForceToCenter(force);
@@ -324,7 +321,7 @@ export class Astro extends Node {
 				update.players.push({
 					position: player.body.getPosition(),
 					rotation: player.body.getAngle(),
-					speed: player.speed,
+					speed: parseFloat(Number(player.speed||0).toFixed(8)),
 					health: player.health,
 					xp: player.xp,
 				});
