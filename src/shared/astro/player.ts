@@ -21,40 +21,12 @@ export class Player extends Poly {
 	health = 100;
 	xp = 0;
 	force = 0.00015;
-
+	lastLevel = this.level;
 
 	constructor() {
 		super();
-		const w = 0.75;
-		const h = 1;
 
-		this.vertices = new Float32Array([
-			0.0, h,
-			-w, -h,
-			w, -h,
-		]);
-
-		if (isServer) {
-			this.body = world.createBody({
-				type: "dynamic",
-				position: {x: 0, y: 0},
-				allowSleep: false,
-				angularDamping: 0.02,
-				linearDamping: 0.002
-			});
-
-			this.body.createFixture({
-				density: 1,
-				restitution: 0.6,
-				shape: new Polygon([
-					{x: 0.0, y: h},
-					{x: -w, y: -h},
-					{x: w, y: -h}
-				])
-			})
-
-			this.body.setUserData(this);
-		}
+		this.resize();
 
 		this.eventSystem.listen(Topic.PlayerControlEvent, data => {
 			if (data.userid === this.userid) {
@@ -73,16 +45,21 @@ export class Player extends Poly {
 
 	update() {
 		super.update();
+
+		if (this.lastLevel !== this.level) {
+			this.resize();
+		}
+
 		if (isServer) {
 			this.applyTransform(this.body.getTransform().p, this.body.getAngle());
-
+			const mass = this.body.getMass()
 			const boost = Math.max(0, Math.min(1, (new Vec2(this.keys.mx, this.keys.my).length() - 5) / 150));
 
 			if (!this.keys.forward) {
 				const rad = this.body.getAngle();
 				const cosTheta = Math.cos(rad)
 				const sinTheta = Math.sin(rad)
-				const f = this.force * boost
+				const f = this.force * boost * Math.pow(mass, 0.5);
 
 				this.body.applyForceToCenter({x: -f * sinTheta, y: f * cosTheta}, true);
 			}
@@ -96,10 +73,8 @@ export class Player extends Poly {
 
 			const shortestAngle = (Math.atan2(Math.sin(target - actual), Math.cos(target - actual)));
 
-
 			if (this.keys.rotation !== undefined) {
-
-				this.body.applyTorque(0.00015 * shortestAngle, true);
+				this.body.applyTorque(0.00025 * shortestAngle * mass, true);
 			}
 
 
@@ -133,8 +108,9 @@ export class Player extends Poly {
 				const sinTheta = Math.sin(rad)
 
 				const spawn = this.body.getPosition().clone();
-				spawn.x -= sinTheta * 3;
-				spawn.y += cosTheta * 3;
+				const scale = Math.pow(this.maxHealth / 100, 0.45);
+				spawn.x -= sinTheta * 3 * scale;
+				spawn.y += cosTheta * 3 * scale;
 				bullet.body.setPosition(spawn);
 				bullet.body.setLinearVelocity(this.body.getLinearVelocity().clone());
 				bullet.body.applyLinearImpulse({x: -sinTheta, y: cosTheta}, bullet.body.getPosition(), true);
@@ -250,8 +226,60 @@ export class Player extends Poly {
 			[0.000, 1.000, 0.000, 1.0]
 		];
 
-
 		this.color = new Float32Array(palate.at(userid % 16));
+	}
+
+	resize() {
+		this.lastLevel = this.level;
+
+		// basic scaling based on maxHealth
+		const w = 0.75 * Math.pow(this.maxHealth / 100, 0.75);
+		const h = 1 * Math.pow(this.maxHealth / 100, 0.75);
+
+		this.vertices = new Float32Array([
+			0.0, h,
+			-w, -h,
+			w, -h,
+		]);
+
+		if (isServer) {
+
+			let position = {x: 0, y: 0}
+			let linearVelocity = {x: 0, y: 0};
+			let angle = 0;
+			let angularVelocity = 0;
+
+			if (this.body) {
+				position = this.body.getPosition().clone();
+				angle = this.body.getAngle();
+				angularVelocity = this.body.getAngularVelocity();
+				linearVelocity = this.body.getLinearVelocity().clone();
+				world.destroyBody(this.body);
+			}
+
+			this.body = world.createBody({
+				type: "dynamic",
+				position,
+				angle,
+				angularVelocity,
+				linearVelocity,
+				allowSleep: false,
+				angularDamping: 0.02,
+				linearDamping: 0.002
+			});
+
+			this.body.createFixture({
+				density: 1,
+				restitution: 0.6,
+				shape: new Polygon([
+					{x: 0.0, y: h},
+					{x: -w, y: -h},
+					{x: w, y: -h}
+				])
+			})
+
+			this.body.setUserData(this);
+		}
 	}
 
 	private getXpForLevel(level: number): number {

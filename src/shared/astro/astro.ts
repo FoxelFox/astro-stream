@@ -13,7 +13,7 @@ import {Item} from "./item";
 export const isClient = typeof window !== 'undefined';
 export const isServer = !isClient;
 
-export let world
+export let world: World;
 
 //Settings.lengthUnitsPerMeter = 1;
 Settings.velocityThreshold = 0;

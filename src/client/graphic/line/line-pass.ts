@@ -22,7 +22,16 @@ export class LinePass {
 	vertexCount: number
 
 	update(camera: Camera) {
-		if (this.linesNeedUpdate) {
+
+		let dirty = false;
+		for (const line of this.lines) {
+			if (line.dirty) {
+				dirty = true;
+				break;
+			}
+		}
+
+		if (this.linesNeedUpdate || dirty) {
 			this.updateBuffers(camera, true);
 			this.linesNeedUpdate = false;
 		} else {

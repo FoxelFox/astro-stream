@@ -20,7 +20,7 @@ export class Astroid extends Poly {
 		if (isServer) {
 
 			const w = this.level *2;
-			const h = this.level *2;
+			const h = this.level *2 * 0.866;
 
 			this.vertices = new Float32Array([
 				0.0, h,

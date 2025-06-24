@@ -87,6 +87,7 @@ export function spawn(username: string): Promise<GameContext> {
 
 
 		function loop() {
+			gameContext.game.update();
 			gameContext.gpu.update();
 			gameContext.sound.update();
 

@@ -23,7 +23,15 @@ export class PolyPass {
 	vertexCount: number
 
 	update(camera: Camera) {
-		if (this.polysNeedUpdate) {
+
+		let dirty = false;
+		for(const poly of this.polys) {
+			if (poly.dirty) {
+				dirty = true;
+			}
+		}
+
+		if (this.polysNeedUpdate || dirty) {
 			this.updateBuffers(camera, true);
 			this.polysNeedUpdate = false;
 		} else {

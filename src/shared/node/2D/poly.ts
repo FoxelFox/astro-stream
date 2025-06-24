@@ -3,7 +3,7 @@ import {Node} from "../node";
 
 export class Poly extends Node2D {
 
-	vertices: Float32Array
+	private _vertices: Float32Array
 	color: Float32Array
 
 	constructor() {
@@ -24,5 +24,13 @@ export class Poly extends Node2D {
 		return o;
 	}
 
+	set vertices(v: Float32Array) {
+		this._vertices = v;
+		this.dirty = true;
+	}
+
+	get vertices() {
+		return this._vertices;
+	}
 
 }

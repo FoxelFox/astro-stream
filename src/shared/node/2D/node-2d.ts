@@ -4,6 +4,8 @@ import {Math} from "planck";
 
 export class Node2D extends Node {
 
+	dirty = true;
+
 	constructor(public transform: Mat4 = mat4.identity()) {
 		super();
 	}
