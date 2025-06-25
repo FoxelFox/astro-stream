@@ -27,7 +27,7 @@ export class Sound {
 		this.masterVolume = new Tone.Volume(-20).toDestination(); // Start bei -10dB
 
 		this.engineSound = new Tone.Oscillator({
-			type: 'sawtooth', // 'sawtooth' oder 'pwm' für einen aggressiveren Sound
+			type: 'triangle', // 'sawtooth' oder 'pwm' für einen aggressiveren Sound
 			frequency: 40,    // Startfrequenz
 		});
 
@@ -74,7 +74,7 @@ export class Sound {
 			}
 
 			try {
-				this.bulletSynth.triggerAttackRelease('F3', '0.5n');
+				this.bulletSynth.triggerAttackRelease(110 + Math.random() * 10, 60 + Math.random() * 10);
 			} catch (e) {
 				// ignore
 			}
@@ -101,7 +101,7 @@ export class Sound {
 
 	update() {
 		const speed = (this.player && this.player.speed ? this.player.speed : 0.00001) *1000;
-		const intensity = 0.1; // 0-1
+		const intensity = 0.1 + Math.random() * (1 - this.player.health / this.player.maxHealth); // 0-1
 
 		// 1. Motortonhöhe (Oszillator-Frequenz)
 		const enginePitch = this.scaleValue(speed, 0, 100, 40, 100 + intensity * 100);
@@ -170,15 +170,15 @@ export class Sound {
 	playRicochetSound() {
 		if (!this.ricochetSynth) {
 			this.ricochetSynth = new Tone.Synth({
-				oscillator: { type: 'square' },
+				oscillator: { type: 'triangle' },
 				envelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.1 },
-				volume: -40
+				volume: -20
 			}).toDestination();
 		}
 
 		try {
 			const now = Tone.now();
-			this.ricochetSynth.triggerAttack('G5', now);
+			this.ricochetSynth.triggerAttack("G3", now);
 			this.ricochetSynth.frequency.linearRampTo('E6', now + 0.05);
 			this.ricochetSynth.frequency.linearRampTo('A4', now + 0.1);
 		} catch (e) {
@@ -194,13 +194,13 @@ export class Sound {
 					pitchDecay: 0.05,
 					octaves: 2,
 					volume: -30,
-					oscillator: { type: "sine" },
+					oscillator: { type: "triangle" },
 					envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
 				}).toDestination(),
 				debris: new Tone.NoiseSynth({
 					noise: { type: "brown" },
 					volume: -30,
-					envelope: { attack: 0.05, decay: 0.5, sustain: 0 }
+					envelope: { attack: 0.15, decay: 0.1, sustain: 0 }
 				}).toDestination()
 			};
 
@@ -213,8 +213,8 @@ export class Sound {
 
 		try {
 			const now = Tone.now();
-			this.explosionSynth.boom.triggerAttackRelease("256n", "8n", now);
-			this.explosionSynth.debris.triggerAttackRelease("8n", now + 0.1);
+			this.explosionSynth.boom.triggerAttackRelease("C3", "G3", now);
+			this.explosionSynth.debris.triggerAttackRelease("F3", now + 0.1);
 		} catch (e) {
 			// ignore it
 		}
