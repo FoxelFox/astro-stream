@@ -13,10 +13,18 @@ class Backend {
 
 	eventSystem = inject(EventSystem);
 	game = new Astro();
+	interval: Timer;
 
 	connections: {[id: string]: ServerWebSocket<unknown>} = {};
 
 	userConnected(ws: ServerWebSocket<unknown>, username: string): string {
+
+		// continue game if first user is connected
+		if (!Object.keys(this.connections).length) {
+			this.interval = setInterval(() => {
+				this.game.update();
+			}, 1000/60);
+		}
 
 		const userid = (++idCounter).toString();
 		this.connections[userid] = ws;
@@ -39,6 +47,11 @@ class Backend {
 				this.eventSystem.publish(Topic.PlayerDisconnected, userid);
 			}
 		}
+
+		// pause game if no user is connected
+		if (!Object.keys(this.connections).length) {
+			clearInterval(this.interval);
+		}
 	}
 
 	result = () => {
@@ -56,10 +69,6 @@ class Backend {
 
 	main() {
 		this.game.init();
-
-		setInterval(() => {
-			this.game.update();
-		}, 1000/60);
 	}
 }
 
@@ -116,10 +125,6 @@ const webSocketServer = Bun.serve({
 		open(ws) {
 			ws.subscribe('update');
 			ws.subscribe('userid');
-
-			console.log('connected');
-
-
 		},
 		message(ws, ev: string) {
 			const e: {topic: Topic, message: any} = JSON.parse(ev);

@@ -84,7 +84,7 @@ export class Astro extends Node {
 		});
 
 		this.eventSystem.listen(Topic.PlayerConnected, data => {
-			console.log("Player Connected", data.userid);
+			console.log(new Date().toLocaleString(), "Player Connected", data.userid);
 			const newPlayer = new Player();
 			newPlayer.userid = data.userid
 			newPlayer.username = data.username;
@@ -95,7 +95,7 @@ export class Astro extends Node {
 		});
 
 		this.eventSystem.listen(Topic.PlayerDisconnected, userid => {
-			console.log("Player Disconnected", userid);
+			console.log(new Date().toLocaleString(), "Player Disconnected", userid);
 			const player = this.getChildren(Player).find(c => c.userid === userid);
 			this.removeChild(player);
 			player.destroy();

@@ -68,7 +68,6 @@ export function spawn(username: string): Promise<GameContext> {
 		const socket = new WebSocket(url);
 
 		socket.onopen = (ev) => {
-			console.log('connected')
 			socket.send(JSON.stringify({topic: Topic.SetUserName, message: username}))
 		}
 
