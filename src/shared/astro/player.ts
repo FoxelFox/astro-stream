@@ -165,7 +165,7 @@ export class Player extends Poly {
 		if (this.health <= 0) {
 			world.queueUpdate(() => {
 
-				for (let i = 0; i < this.level; ++i) {
+				for (let i = 0; i < this.level *5; ++i) {
 
 					// TODO Duplicate Code
 					const item = new Item(
@@ -239,7 +239,7 @@ export class Player extends Poly {
 		this.vertices = new Float32Array([
 			0.0, h,
 			-w, -h,
-			w, -h,
+			w, -h
 		]);
 
 		if (isServer) {

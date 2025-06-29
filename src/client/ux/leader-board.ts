@@ -1,6 +1,7 @@
 import {customElement, property} from "lit/decorators.js";
 import {html, LitElement} from "lit";
 import {Player} from "../../shared/astro/player";
+import {mat4} from "wgpu-matrix";
 
 @customElement("leader-board")
 export class LeaderBoard extends LitElement {

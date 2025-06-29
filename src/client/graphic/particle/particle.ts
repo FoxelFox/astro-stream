@@ -7,6 +7,10 @@ import compute from "./compute.wgsl" with {type: "text"};
 import {Camera} from "../camera";
 import {mat4} from "wgpu-matrix";
 import {quad} from "./quad";
+import {gameContext} from "../../main";
+import {Player} from "../../../shared/astro/player";
+import {Item} from "../../../shared/astro/item";
+import {Bullet} from "../../../shared/astro/bullet";
 
 export class Particle {
 
@@ -25,7 +29,7 @@ export class Particle {
 		4 * 4 + // color
 		0;
 
-	numParticles = 1024 * 50;
+	numParticles = 1024 * 16;
 	computePipeline: GPUComputePipeline
 	pipeline: GPURenderPipeline
 	particleBindGroups: GPUBindGroup[]
@@ -40,15 +44,82 @@ export class Particle {
 		const eventSystem = inject(EventSystem);
 		eventSystem.listen(Topic.Update, data => {
 
-			if (!data.collisions.length) {
-				return;
+			let instances = []
+
+			const bullets = gameContext.game.getChildren(Bullet);
+			for (let bullet of bullets) {
+
+				instances = instances.concat([
+					// position
+					mat4.getTranslation(bullet.transform)[0],
+					mat4.getTranslation(bullet.transform)[1],
+
+					// velocity
+					(Math.random() - 0.5) * 0.1,
+					(Math.random() - 0.5) * 0.1,
+
+					// color
+					bullet.color[0],
+					bullet.color[1],
+					bullet.color[2],
+
+					// live time and alpha
+					1.0
+				])
+
 			}
 
-			const buffer = new Float32Array(data.collisions.length * this.particleInstanceByteSize * 10);
-			let offset = 0;
+
+			const items = gameContext.game.getChildren(Item);
+			for (let item of items) {
+				instances = instances.concat([
+					// position
+					mat4.getTranslation(item.transform)[0],
+					mat4.getTranslation(item.transform)[1],
+
+					// velocity
+					(Math.random() - 0.5) * 0.1,
+					(Math.random() - 0.5) * 0.1,
+
+					// color
+					item.color[0],
+					item.color[1],
+					item.color[2],
+
+					// live time and alpha
+					1.0
+				])
+			}
+
+			const players = gameContext.game.getChildren(Player);
+
+			for (let player of players) {
+				const damageParticles = Math.round( Math.random() * 2 * (1 - (player.health/ player.maxHealth)));
+
+				for (let i = 0; i < damageParticles; i++) {
+					instances = instances.concat([
+						// position
+						mat4.getTranslation(player.transform)[0],
+						mat4.getTranslation(player.transform)[1],
+
+						// velocity
+						(Math.random() - 0.5) * 0.5,
+						(Math.random() - 0.5) * 0.5,
+
+						// color
+						1.0 + (Math.random() - 0.5) * 0.5, // r
+						0.2 + (Math.random() - 0.5) * 0.5, // g
+						0.1 + (Math.random() - 0.5) * 0.5, // b
+
+						// live time and alpha
+						2.0
+					])
+				}
+			}
+
 			for (const collision of data.collisions) {
 				for (let i = 0; i < 10; i++) {
-					const instance = [
+					instances = instances.concat([
 						// position
 						collision.x,
 						collision.y,
@@ -64,19 +135,25 @@ export class Particle {
 
 						// live time and alpha
 						2.0
-					];
-					buffer.set(instance, offset);
-					offset += instance.length;
+					]);
 				}
 			}
 
-			this.rollingOffset += buffer.byteLength;
 
-			if (this.rollingOffset + buffer.byteLength > this.particleBuffers[0].size ) {
-				this.rollingOffset = 0;
+			if (instances.length) {
+				const buffer = new Float32Array(instances);
+
+
+
+				if (this.rollingOffset + buffer.byteLength > this.particleBuffers[0].size ) {
+					this.rollingOffset = 0;
+					console.log('overdraw');
+				}
+
+				device.queue.writeBuffer(this.particleBuffers[this.t % 2], this.rollingOffset, buffer);
+				this.rollingOffset += buffer.byteLength;
+
 			}
-
-			device.queue.writeBuffer(this.particleBuffers[this.t % 2], this.rollingOffset, buffer);
 		});
 
 	}
