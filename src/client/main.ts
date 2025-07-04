@@ -18,6 +18,7 @@ import {Camera} from "./graphic/camera";
 
 
 const url = location.hostname === 'localhost' ? 'ws://localhost:3001' : `wss://ws.${location.hostname}`;
+//const url = 'wss://ws.astro.64f.de'
 
 export interface GameContext {
 	game?: Astro,

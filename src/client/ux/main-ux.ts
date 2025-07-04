@@ -18,11 +18,10 @@ export class MainUx extends LitElement {
 	@property() xp: number
 	@property() xpPercent: number = 0
 	@property() level: number
-	@property() username: string = localStorage.getItem('username') || ''
+	@property() username: string = ''
 
 
 	async startGame() {
-		localStorage.setItem('username', this.username);
 		this.isLoggedIn = true;
 		this.context = await spawn(this.username);
 
@@ -49,7 +48,7 @@ export class MainUx extends LitElement {
 	render() {
 		return html`
 			<style>
-				input {
+				.text {
 					padding: 6px 12px;
 					background: rgb(31, 32, 35);
 					border: 1px solid rgb(60, 63, 68);
@@ -60,7 +59,7 @@ export class MainUx extends LitElement {
 					transition: border 0.15s ease 0s;
 					font-size: 18px;
 				}
-				input:focus{
+				.text:focus{
 					outline: none;
 					box-shadow: none;
 					border-color: rgb(100, 153, 255);
@@ -85,6 +84,15 @@ export class MainUx extends LitElement {
 				}
 				button:focus {
 					border-color: rgb(100, 153, 255);
+				}
+				.fuck-you-dsgvo {
+					font-size: 15px;
+					opacity: 0.5;
+					display: flex;
+					align-items: flex-start;
+					margin-top: 8px;
+					text-align: justify;
+					width: 308px;
 				}
 			</style>
 			${this.isLoggedIn
@@ -122,14 +130,14 @@ export class MainUx extends LitElement {
 				: html`
 					<div style="display: grid; place-items: center; height: 100vh">
 						<form @submit="${this.startGame}">
-							<input  placeholder="Name" id="username" .value="${this.username}" @change="${this.change}">
-							
+							<input class="text" placeholder="Name" id="username" .value="${this.username}" @change="${this.change}">
 							<button
 								@click="${this.startGame}"
 								?disabled="${this.isLoggedIn}"
 							>
 								Start
 							</button>
+							<div class="fuck-you-dsgvo">Dein Name wird für andere Spieler nur in der aktuellen Session im Spiel sichtbar sein.</div>
 						</form>
 						
 					</div>
