@@ -5,6 +5,18 @@ services:
     ports:
       - 3000:3000
       - 3001:3001
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.astro.rule=Host(`astro.${DOMAIN}`)"
+      - "traefik.http.routers.astro.service=astro"
+      - "traefik.http.routers.astro.entrypoints=websecure"
+      - "traefik.http.routers.astro.tls.certresolver=letsencrypt"
+      - "traefik.http.services.astro.loadbalancer.server.port=3000"
+      - "traefik.http.routers.astro-ws.service=astro-ws"
+      - "traefik.http.routers.astro-ws.rule=Host(`ws.astro.${DOMAIN}`)"
+      - "traefik.http.routers.astro-ws.entrypoints=websecure"
+      - "traefik.http.routers.astro-ws.tls.certresolver=letsencrypt"
+      - "traefik.http.services.astro-ws.loadbalancer.server.port=3001"
 networks:
   default:
-    name: nginx
+    name: web
