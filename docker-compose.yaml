@@ -5,6 +5,8 @@ services:
     ports:
       - 3000:3000
       - 3001:3001
+    networks:
+      - web
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.astro.rule=Host(`astro.${DOMAIN}`)"
@@ -18,5 +20,5 @@ services:
       - "traefik.http.routers.astro-ws.tls.certresolver=letsencrypt"
       - "traefik.http.services.astro-ws.loadbalancer.server.port=3001"
 networks:
-  default:
+  web:
     name: web
